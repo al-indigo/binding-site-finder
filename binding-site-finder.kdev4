@@ -1,0 +1,4 @@
+[Project]
+Name=binding-site-finder
+Manager=KDevCMakeManager
+VersionControl=kdevgit
