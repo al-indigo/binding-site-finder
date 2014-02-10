@@ -3,7 +3,7 @@
 #include <vector>
 
 #define NUM_COLS 4
-#define STRING_CONTAINER std::vector<std::string>
+#define STRING_CONTAINER std::vector<std::vector<char> >
 
 
 typedef struct pwm_matrix {
@@ -21,31 +21,33 @@ typedef struct pwm_path {
   size_t length;
   bool final;
   pwm_path() { path = NULL; length = 0; final = false; }
- ~pwm_path() { delete path; }
+ ~pwm_path() { delete[] path; }
   void init (size_t _length){ path = new char[_length]; length = _length; memset(path, 0, sizeof(char) * length); }
-  std::string getWord() {
-    char buffer[length+1];
-    buffer[length] = '\0';
+  
+/* NOTE: I'm using here vector instead of char[] to avoid leaks in future: it's simplier to maintain */   
+  std::vector<char> getWord() {
+    std::vector<char> word(length+1);
+    word[length] = '\0';
     for(int i = 0; i < length; i++) {
       switch (path[i]) {
         case 0: 
-          buffer[i] = 'A';
+          word[i] = 'A';
           break;
         case 1:
-          buffer[i] = 'C';
+          word[i] = 'C';
           break;
         case 2:
-          buffer[i] = 'G';
+          word[i] = 'G';
           break;
         case 3:
-          buffer[i] = 'T';
+          word[i] = 'T';
           break;
         default:
-          std::cout << "Something wrong with the matrix: it seems to have more than 4 columns" << std::endl;
+          std::cerr << "Something wrong with the matrix: it seems to have more than 4 columns" << std::endl;
           exit(-1);
       }
     }
-    return std::string(buffer);
+    return word;
   }
   
   void incr() {

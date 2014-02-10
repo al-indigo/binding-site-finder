@@ -57,6 +57,30 @@ AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern (const std::string
     return rv;
 }
 
+AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern (const std::vector<char> &pattern, PatternId id)
+{
+    EnumReturnStatus rv = RETURNSTATUS_FAILED;
+    
+    /* Important NOTE: we use here that by C++03 standard promises contiguous vectors. */
+    
+    AC_PATTERN_t tmp_patt;
+    tmp_patt.astring = (AC_ALPHABET_t*) &pattern[0];
+    tmp_patt.length = pattern.size() - 1;
+    tmp_patt.rep.number = id;
+
+    AC_STATUS_t status = ac_automata_add (m_automata, &tmp_patt);
+    
+    switch (status)
+    {
+        case ACERR_SUCCESS:             rv = RETURNSTATUS_SUCCESS; break;
+        case ACERR_DUPLICATE_PATTERN:   rv = RETURNSTATUS_DUPLICATE_PATTERN; break;
+        case ACERR_LONG_PATTERN:        rv = RETURNSTATUS_LONG_PATTERN; break;
+        case ACERR_ZERO_PATTERN:        rv = RETURNSTATUS_ZERO_PATTERN; break;
+        case ACERR_AUTOMATA_CLOSED:     rv = RETURNSTATUS_AUTOMATA_CLOSED; break;
+    }
+    return rv;
+}
+
 AhoCorasickPlus::EnumReturnStatus AhoCorasickPlus::addPattern (const char pattern[], PatternId id)
 {
     std::string tmpString = pattern;
@@ -72,6 +96,13 @@ void AhoCorasickPlus::search (std::string& text, bool keep)
 {
     m_acText->astring = text.c_str();
     m_acText->length = text.size();
+    ac_automata_settext (m_automata, m_acText, (int)keep);
+}
+
+void AhoCorasickPlus::search (char* text, size_t size, bool keep) {
+    /* Important NOTE: we use here that by C++03 standard promises contiguous vectors. */
+    m_acText->astring = text;
+    m_acText->length = size;
     ac_automata_settext (m_automata, m_acText, (int)keep);
 }
 

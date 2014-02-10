@@ -62,10 +62,12 @@ public:
     ~AhoCorasickPlus();
 
     EnumReturnStatus addPattern (const std::string &pattern, PatternId id);
+    EnumReturnStatus addPattern (const std::vector<char> &pattern, PatternId id);
     EnumReturnStatus addPattern (const char pattern[], PatternId id); // zero ending string
     void             finalize   ();
 
-    void search   (std::string& text, bool keep);
+    void search (std::string& text, bool keep);
+    void search (char* text, size_t size, bool keep);
     bool findNext (Match& match);
 
 private:

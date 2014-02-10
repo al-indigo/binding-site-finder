@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 /* AC_ALPHABET_t:
  * defines the alphabet type.
  * Actually defining AC_ALPHABET_t as a char work as well, but sometimes we deal
@@ -79,7 +80,7 @@ typedef struct AC_PATTERN
 typedef struct AC_TEXT
 {
     const AC_ALPHABET_t * astring; /* String of alphabets */
-    unsigned int length; /* Length of string */
+    size_t length; /* Length of string */
 } AC_TEXT_t;
 
 /* AC_MATCH_t:
