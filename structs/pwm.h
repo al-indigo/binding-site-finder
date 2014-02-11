@@ -1,9 +1,11 @@
+#ifndef PWM_H
+#define PWM_H
+
 #include <string>
 #include <stack>
 #include <vector>
 
 #define NUM_COLS 4
-#define STRING_CONTAINER std::vector<std::vector<char> >
 
 
 typedef struct pwm_matrix {
@@ -117,8 +119,10 @@ class Pwm {
     ~Pwm ();
   
     double * InitScoresAheadOptimistic(pwmMatrix & pwm);
-    STRING_CONTAINER getWords(double threshold, unsigned int count);
+    std::vector<std::vector<char> > getWords(double threshold, unsigned int count);
     bool hasMoreWords() { return lastPath.final; };
     /* Maybe we will use it to predict the worst case; not now, it's overkill for now */
     //void InitScoresAheadPessimistic(double * scoreVector, pwmMatrix & pwm);
 };
+
+#endif

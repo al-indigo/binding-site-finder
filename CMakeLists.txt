@@ -9,10 +9,11 @@ set (PROJECT binding-site-finder)
 
 add_subdirectory(ahoc)
 add_subdirectory(structs)
+add_subdirectory(utils)
 
 add_executable(${PROJECT} main.cpp)
-add_dependencies(${PROJECT} ahoc_CPP_LIB structs_LIB)
+add_dependencies(${PROJECT} ahoc_CPP_LIB structs_LIB utils_CPP_LIB)
 
-target_link_libraries(${PROJECT} ahoc_CPP_LIB structs_LIB)
+target_link_libraries(${PROJECT} ahoc_CPP_LIB structs_LIB utils_CPP_LIB)
 
 #target_link_libraries(${PROJECT} ${Boost_LIBRARIES})
