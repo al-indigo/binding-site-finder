@@ -3,16 +3,20 @@
 #include <fstream>
 #include <sstream>
 
+/* NOTE: This implementation gets rid of duplicates.
+ *       Also it's important to remember that we don't have duplicates inside any file
+ *       by design, so it's correct to it that way
+ */
 void merge_sort(std::string filename1in, std::string filename2in, std::string filename_out) {
     // Open Files
     std::ifstream fin(filename1in);
     std::ifstream fin2(filename2in);
     std::ofstream fout(filename_out);
 
-    std::string line;                // string to hold line from file
-//    size_t i = 1;                  // line counter
+    std::string line;                
     size_t in1 = 0;
     size_t in2 = 0;
+    size_t last_in = -1; //That's a trick: I just need to have unique value for it at start.
     if(fin) {
         getline(fin,line);
         std::stringstream ss(line);
@@ -27,13 +31,19 @@ void merge_sort(std::string filename1in, std::string filename2in, std::string fi
     while(fin || fin2) {
         if(fin && fin2) {
             if(in2 <= in1) {
-                fout << in2 << std::endl;
+                if (in2 != last_in) {
+                  fout << in2 << std::endl;
+                  last_in = in2;
+                }
                 getline(fin2, line);
                 std::stringstream ss(line);
                 ss >> in2;
             }
             else {
-                fout << in1 << std::endl;
+                if(in1 != last_in) {
+                  fout << in1 << std::endl;
+                  last_in = in1;
+                }
                 getline(fin, line);
                 std::stringstream ss(line);
                 ss >> in1;

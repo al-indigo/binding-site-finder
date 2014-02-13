@@ -52,6 +52,10 @@ typedef struct pwm_path {
     return word;
   }
   
+  size_t getLength() { 
+    return length; 
+  }
+  
   void incr() {
     for (int i = length-1; i >= 0; i--) {
       if (path[i] < NUM_COLS - 1) {
@@ -117,7 +121,8 @@ class Pwm {
   public:
     Pwm (std::string pwmFilename, double threshold);
     ~Pwm ();
-  
+    
+    size_t getLength() { return lastPath.getLength(); }
     double * InitScoresAheadOptimistic(pwmMatrix & pwm);
     std::vector<std::vector<char> > getWords(double threshold, unsigned int count);
     bool hasMoreWords() { return lastPath.final; };

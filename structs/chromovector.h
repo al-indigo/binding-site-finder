@@ -20,8 +20,12 @@ public:
   std::string& getFilename(size_t sequence_number);
   std::string& getDescription(size_t sequence_number);
   std::string& getResultFilename (size_t sequence_number);
-  char * getSeq (size_t sequence_number);
+  char * getSeq (size_t sequence_number, size_t part_number);
+  size_t getNumberOfParts (size_t sequence_number);
+  size_t getPartLength ( size_t sequence_number, size_t part_number );
   size_t getSeqLength (size_t sequence_number);
+  size_t getAbsoluteOffset (size_t sequence_number, size_t part_number);
+  void releasePart ( size_t sequence_number, size_t part_number);
   
  ~ChromoVector ( );
 };

@@ -39,14 +39,26 @@ std::string& ChromoVector::getResultFilename ( size_t sequence_number) {
   return result_filenames[sequence_number];
 }
 
-char* ChromoVector::getSeq ( size_t sequence_number ) {
-  return chromovector[sequence_number]->getSeqPtr();
-
+char* ChromoVector::getSeq ( size_t sequence_number, size_t part_number ) {
+  return chromovector[sequence_number]->getSeqPtr(part_number);
 }
 
-size_t ChromoVector::getSeqLength ( size_t sequence_number ) {
-  return chromovector[sequence_number]->size();
+size_t ChromoVector::getPartLength ( size_t sequence_number, size_t part_number ) {
+  return chromovector[sequence_number]->getPartLength(part_number);
 }
+
+size_t ChromoVector::getNumberOfParts ( size_t sequence_number ) {
+  return chromovector[sequence_number]->getNumberOfParts();
+}
+
+void ChromoVector::releasePart ( size_t sequence_number, size_t part_number ) {
+  chromovector[sequence_number]->releasePart(part_number);
+}
+
+size_t ChromoVector::getAbsoluteOffset ( size_t sequence_number, size_t part_number ) {
+  chromovector[sequence_number]->getPartOffset(part_number);
+}
+
 
 
 ChromoVector::~ChromoVector () {
