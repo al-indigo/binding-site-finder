@@ -9,9 +9,9 @@
  */
 void merge_sort(std::string filename1in, std::string filename2in, std::string filename_out) {
     // Open Files
-    std::ifstream fin(filename1in);
-    std::ifstream fin2(filename2in);
-    std::ofstream fout(filename_out);
+    std::ifstream fin(filename1in.c_str());
+    std::ifstream fin2(filename2in.c_str());
+    std::ofstream fout(filename_out.c_str());
 
     std::string line;                
     size_t in1 = 0;

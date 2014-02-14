@@ -3,6 +3,7 @@
  */
 
 #include "chromovector.h"
+#include <stdexcept>
 
 ChromoVector::ChromoVector (std::vector<std::string> filenames, 
                             std::vector<std::string> description,
@@ -56,7 +57,7 @@ void ChromoVector::releasePart ( size_t sequence_number, size_t part_number ) {
 }
 
 size_t ChromoVector::getAbsoluteOffset ( size_t sequence_number, size_t part_number ) {
-  chromovector[sequence_number]->getPartOffset(part_number);
+  return chromovector[sequence_number]->getPartOffset(part_number);
 }
 
 

@@ -7,14 +7,14 @@
 
 class ChromoVector {
   std::vector<Chromo*> chromovector;
-  std::vector<std::vector<std::string>> tempresults;
+  std::vector<std::vector<std::string> > tempresults;
   std::vector<std::string> result_filenames;
-  
+
 public:
-  ChromoVector (std::vector<std::string> filenames, 
+  ChromoVector (std::vector<std::string> filenames,
                 std::vector<std::string> description,
                 std::vector<std::string> _result_filenames,
-                std::vector<size_t> start, 
+                std::vector<size_t> start,
                 std::vector<size_t> end);
   size_t size();
   std::string& getFilename(size_t sequence_number);

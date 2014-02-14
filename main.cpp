@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
           std::cout << "Results for " << sequences.getFilename(s_i) << " as " << sequences.getDescription(s_i) << " part #" << p_i << std::endl;
 
           std::string tempfilename = prepare_filename(result_folder + sequences.getResultFilename(s_i), "-part-", (s_i+1)*10000000 + p_i);
-          std::ofstream fout(tempfilename);
+          std::ofstream fout(tempfilename.c_str());
           
           files_to_merge[s_i].push_back(tempfilename);
 
@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < files_to_merge.size(); i++) {
     time_t t = time(NULL);
     std::string tempfilename = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), 0, &t);
-    std::ofstream fout(tempfilename);
+    std::ofstream fout(tempfilename.c_str());
     fout.close();
     
     for (int j = 0; j < files_to_merge[i].size(); j++) {

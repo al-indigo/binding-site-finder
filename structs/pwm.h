@@ -1,6 +1,7 @@
 #ifndef PWM_H
 #define PWM_H
 
+#include <cstring>
 #include <string>
 #include <stack>
 #include <vector>
