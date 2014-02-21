@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -125,6 +126,7 @@ int main(int argc, char **argv) {
           std::string tempfilename = prepare_filename(result_folder + sequences.getResultFilename(s_i), "-part-", (s_i+1)*10000000 + p_i);
           std::ofstream fout(tempfilename.c_str());
           fout.rdbuf()->pubsetbuf(fbuf, FSTREAM_BUF_SIZE);
+          fout << std::setbase(16);
           
           files_to_merge[s_i].push_back(tempfilename);
 
