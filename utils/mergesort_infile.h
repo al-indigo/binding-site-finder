@@ -3,6 +3,9 @@
 
 #include <string>
 
+#define FSTREAM_BUF_SIZE 16*1024*1024LLU
+
+void merge_sort_dumb(std::string filename1in, std::string filename2in, std::string filename_out);
 void merge_sort(std::string filename1in, std::string filename2in, std::string filename_out);
 
 #endif

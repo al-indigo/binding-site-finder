@@ -15,6 +15,8 @@
 #include "utils/mergesort_infile.h"
 #include "utils/prepare_filename.h"
 
+
+
 int main(int argc, char **argv) {
 //NOTE: results_path should exist (I'm ruling all the filenames stuff with python wrapper - it's easier)
   std::string result_folder("/Users/al/Programming/binding-site-finder/build/results/");
@@ -27,11 +29,11 @@ int main(int argc, char **argv) {
   // worst measured case is 42 bytes per character in word.
   
 
-  double score_threshold = 8.0;
+  double score_threshold = -8.0;
 
-//  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", score_threshold);
+  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/SOX17_f2.pat", score_threshold);
-  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", score_threshold);
+//  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/EOMES_f1.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/ZEB1_do.pat", score_threshold);
     
@@ -42,7 +44,7 @@ int main(int argc, char **argv) {
   
   // This is counted in experimental way: it's clear that consumption depends on length, but the coefficient
   // is just experimental for 5 matrices. Real consumption is always less than here (aho-corasick is quite tricky).
-  // 
+  //
   unsigned int patterns_allowed = ( (mem_allowed)*1024*1024 - READ_BLOCK_SIZE) / (32*(matrix.getLength()));
  
   size_t test_start = 0;
@@ -110,6 +112,8 @@ int main(int argc, char **argv) {
     
     for (size_t s_i = 0; s_i < sequences.size(); s_i++) {
       for (size_t p_i = 0; p_i < sequences.getNumberOfParts(s_i); p_i++) {
+          char * fbuf = new char[FSTREAM_BUF_SIZE];
+        
           char * seq = sequences.getSeq(s_i, p_i);
           size_t length = sequences.getPartLength(s_i, p_i);
           size_t offset = sequences.getAbsoluteOffset(s_i, p_i);
@@ -120,6 +124,7 @@ int main(int argc, char **argv) {
 
           std::string tempfilename = prepare_filename(result_folder + sequences.getResultFilename(s_i), "-part-", (s_i+1)*10000000 + p_i);
           std::ofstream fout(tempfilename.c_str());
+          fout.rdbuf()->pubsetbuf(fbuf, FSTREAM_BUF_SIZE);
           
           files_to_merge[s_i].push_back(tempfilename);
 
@@ -133,6 +138,7 @@ int main(int argc, char **argv) {
           
           std::cout << "Occurances found: " << occurances << std::endl;
           fout.close();
+          delete [] fbuf;
           sequences.releasePart(s_i, p_i);
       }
     }
@@ -140,15 +146,30 @@ int main(int argc, char **argv) {
   
   std::cout << "Preparing to merge" << std::endl;
   
+//   for (int i = 0; i < files_to_merge.size(); i++) {
+//     time_t t = time(NULL);
+//     std::string tempfilename = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), 0, &t);
+//     std::ofstream fout(tempfilename.c_str());
+//     fout.close();
+//     
+//     for (int j = 0; j < files_to_merge[i].size(); j++) {
+//       std::string read_file = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), j, &t);
+//       std::string write_file = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), j+1, &t);
+//       
+//       merge_sort(files_to_merge[i][j], read_file, write_file);
+//     }
+//     
+//   }
+  
   for (int i = 0; i < files_to_merge.size(); i++) {
     time_t t = time(NULL);
-    std::string tempfilename = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), 0, &t);
+    std::string tempfilename = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-stl-"), 0, &t);
     std::ofstream fout(tempfilename.c_str());
     fout.close();
     
     for (int j = 0; j < files_to_merge[i].size(); j++) {
-      std::string read_file = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), j, &t);
-      std::string write_file = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-"), j+1, &t);
+      std::string read_file = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-stl-"), j, &t);
+      std::string write_file = prepare_filename(result_folder + result_filenames[i], std::string("-temp-merge-stl-"), j+1, &t);
       
       merge_sort(files_to_merge[i][j], read_file, write_file);
     }

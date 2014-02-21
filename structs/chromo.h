@@ -9,7 +9,10 @@
 /*NOTE: Here the part-size that is stored in-memory is defined. 
  *      You may change it if you want but I've measured -- it's optimal 
  *      for regular HDD.*/
-#define READ_BLOCK_SIZE size_t(32*1024*1024LLU - INTERSECTION_SIZE)
+/* IMPORTANT: more block you use, faster the program works -- it needs to make less
+ *            merges of results which take lot of time
+ */
+#define READ_BLOCK_SIZE size_t(128*1024*1024LLU - INTERSECTION_SIZE)
 
 
 #include <string>

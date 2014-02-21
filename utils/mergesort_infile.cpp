@@ -1,13 +1,18 @@
+#include "mergesort_infile.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <cstdio>
 
 /* NOTE: This implementation gets rid of duplicates.
  *       Also it's important to remember that we don't have duplicates inside any file
  *       by design, so it's correct to it that way
  */
-void merge_sort(std::string filename1in, std::string filename2in, std::string filename_out) {
+void merge_sort_dumb(std::string filename1in, std::string filename2in, std::string filename_out) {
     // Open Files
     std::ifstream fin(filename1in.c_str());
     std::ifstream fin2(filename2in.c_str());
@@ -68,4 +73,22 @@ void merge_sort(std::string filename1in, std::string filename2in, std::string fi
             first = false;  // only print line from now on, don't print in1 or in2
         }
     }
+}
+
+void merge_sort(std::string filename1in, std::string filename2in, std::string filename_out) {
+ 
+        std::ifstream fin1(filename1in.c_str());
+        std::ifstream fin2(filename2in.c_str());
+        std::ofstream fout(filename_out.c_str());
+
+        std::merge(std::istream_iterator<size_t>(fin1),
+                   std::istream_iterator<size_t>(),
+                   std::istream_iterator<size_t>(fin2),
+                   std::istream_iterator<size_t>(),
+                   std::ostream_iterator<size_t>(fout, "\n"));
+        fin1.close();
+        fin2.close();
+        fout.close();
+        remove(filename1in.c_str());
+        remove(filename2in.c_str());
 }
