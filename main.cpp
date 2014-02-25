@@ -30,11 +30,14 @@ int main(int argc, char **argv) {
   // worst measured case is 42 bytes per character in word.
   
 
-  double score_threshold = -8.0;
+//  double score_threshold = -8.0;
+  double p_value = 0.001;
 
-  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", score_threshold);
+  Pwm matrix("/Users/al/Programming/perfectosape/test_data/pwm/KLF4_f2.pwm", p_value);
+  
+//  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/SOX17_f2.pat", score_threshold);
-//  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", score_threshold);
+//  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", p_value);
 //  Pwm matrix("/Users/al/Downloads/pwms/EOMES_f1.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/ZEB1_do.pat", score_threshold);
     
@@ -94,7 +97,7 @@ int main(int argc, char **argv) {
     AhoCorasickPlus atm;
     {
       std::vector<std::vector<char> > patterns;
-      patterns = matrix.getWords(score_threshold, patterns_allowed);
+      patterns = matrix.getWords(patterns_allowed);
       for (size_t i = 0; i < patterns.size(); i++)
       {
           AhoCorasickPlus::EnumReturnStatus status;

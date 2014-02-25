@@ -11,7 +11,7 @@
 
 //#define DDEBUG_PRINT
 
-Pwm::Pwm(std::string pwmFilename, double threshold) {
+Pwm::Pwm(std::string pwmFilename, double p_value) {
   std::ifstream ifs(pwmFilename.c_str());
   std::string tempStr;
   std::cout.precision(17);
@@ -43,9 +43,11 @@ Pwm::Pwm(std::string pwmFilename, double threshold) {
 
   pwmFw.init(NUM_COLS, count/NUM_COLS);
   pwmRev.init(NUM_COLS, count/NUM_COLS);
+  pwmRounded.init(NUM_COLS, count/NUM_COLS);
   for (int k=0; k<count; k++) {
     pwmFw.matrix[k] = scorebuffer[k]; //test[k];
     pwmRev.matrix[k] = scorebuffer[count-k-1]; //test[count-k-1];
+    pwmRounded.matrix[k] = ceil(scorebuffer[k] * DISCRETIZATION_VALUE);
   }
 
   lastPath.init(pwmFw.rows);
@@ -70,14 +72,16 @@ Pwm::Pwm(std::string pwmFilename, double threshold) {
 
   optimisticScoresFw = InitScoresAheadOptimistic(pwmFw);
   optimisticScoresRev = InitScoresAheadOptimistic(pwmRev);
-
-
+  optimisticScoresRoundedFw = InitScoresAheadOptimistic(pwmRounded);
+  
+  double upper_threshold = threshold_by_pvalue(p_value, optimisticScoresRoundedFw, pwmRounded);
+  threshold = upper_threshold;
   return;
 }
 
 double * Pwm::InitScoresAheadOptimistic(pwmMatrix & pwm) {
-  double * scoreVector = new double[pwm.rows];
-  memset(scoreVector, 0,  sizeof(double) * pwm.rows);
+  double * scoreVector = new double[pwm.rows + 1];
+  memset(scoreVector, 0,  sizeof(double) * (pwm.rows + 1));
   for (int i = pwm.rows - 1; i > 0; --i) {
     double max = -1 * std::numeric_limits< double >::max();
     for (int j = 0; j < pwm.cols; ++j) {
@@ -95,10 +99,15 @@ double * Pwm::InitScoresAheadOptimistic(pwmMatrix & pwm) {
   return scoreVector;
 }
 
-std::vector<std::vector<char> > Pwm::getWords(double threshold, unsigned int count) {
+std::vector<std::vector<char> > Pwm::getWords(unsigned int count) {
+  
   std::vector<std::vector<char> > words;
   words.reserve(count * sizeof(std::string::value_type) * lastPath.length );
   /* wordcount is not a regular counter: it follows fit words, not number of iterations */
+  
+  size_t fw_fits = 0;
+  size_t rev_fits = 0;
+  
   for (int wordcount = 0; wordcount < count && !lastPath.final; lastPath.incr()) {
     double fwScore = 0;
     double revScore = 0;
@@ -110,7 +119,7 @@ std::vector<std::vector<char> > Pwm::getWords(double threshold, unsigned int cou
       revScore += pwmRev(depth, lastPath.path[depth]);
       /* here we check if we could ever get more scores on current path */
       if(fwScore + optimisticScoresFw[depth] < threshold &&
-          revScore + optimisticScoresRev[depth] < threshold) {
+         revScore + optimisticScoresRev[depth] < threshold) {
             needBreak = true;
             /* if we can not; we increase path[depth] by one and null all after that */
             lastPath.makeHop(depth);
@@ -125,10 +134,11 @@ std::vector<std::vector<char> > Pwm::getWords(double threshold, unsigned int cou
 #ifdef DDEBUG_PRINT
       std::cout << "Word fits: " << lastPath.getWord() << " with score: " << (fwScore > threshold ? fwScore : revScore) << std::endl;
 #endif
+      fwScore > threshold ? fw_fits++ : rev_fits++;
     }
   }
 //#ifdef DDEBUG_PRINT
-  std::cout << "Internal check: #patterns fit: " << words.size() << std::endl;
+  std::cout << "Internal check: #patterns fit: " << words.size() << " fw: " << fw_fits << " rev: " << rev_fits << std::endl;
 //#endif
   return words;
 }

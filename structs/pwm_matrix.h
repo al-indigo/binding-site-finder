@@ -1,6 +1,8 @@
 #ifndef PWM_MATRIX_H
 #define PWM_MATRIX_H
 
+#include <limits>
+
 typedef struct pwm_matrix {
   double * matrix;
   size_t rows;
