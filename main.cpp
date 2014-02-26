@@ -31,17 +31,23 @@ int main(int argc, char **argv) {
   
 
 //  double score_threshold = -8.0;
-  double p_value = 0.001;
+  double p_value = 1.0;
 
-  Pwm matrix("/Users/al/Programming/perfectosape/test_data/pwm/KLF4_f2.pwm", p_value);
+//  Pwm matrix("/Users/al/Programming/perfectosape/test_data/pwm/KLF4_f2.pwm", p_value);
   
 //  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/SOX17_f2.pat", score_threshold);
-//  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", p_value);
+  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", p_value);
 //  Pwm matrix("/Users/al/Downloads/pwms/EOMES_f1.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/ZEB1_do.pat", score_threshold);
     
 //  Pwm matrix("/Users/al/Downloads/pwms/PAX2_f1.pat", score_threshold);
+  
+  std::vector<double> thresholds {7.32, 4.31, 5.42, 2.3, 12.1233, 9.1233, 0.01, -0.01, -9.23, -40.0};
+  std::vector<double> p_values = matrix.getPValues(thresholds);
+  for (std::vector<double>::iterator i = p_values.begin(); i != p_values.end(); ++i) {
+    std::cout << "P-value: " << *i << std::endl;
+  }
   
   
   size_t mem_allowed = 8*512; //memory to spend in MB. Don't set it less than READ_BLOCK_SIZE/(1024*1024)

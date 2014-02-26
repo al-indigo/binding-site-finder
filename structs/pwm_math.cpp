@@ -48,7 +48,7 @@ inline static std::map<double, double> count_distribution_after_threshold (pwmMa
   std::map<double, double> scores;
   scores.insert(std::make_pair(0.0, 1.0));
   for (int row = 0; row < matrix.rows; row++) {
-    scores = recalc_score_hash(scores, matrix, row, threshold - scores_optimistic[row]); //NOTE: here's a dirty place: I init scores_optimistic with one more 0 value not to get out of bounds here.
+    scores = recalc_score_hash(scores, matrix, row, threshold - scores_optimistic[row]);
   }
   return scores;
 }
@@ -143,23 +143,45 @@ double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatri
   std::pair<std::vector<double>::iterator, std::vector<double>::iterator> bounds;
   bounds = std::equal_range(scores_partial_sums.begin(), test, floor(p_value * vocabularyVolume(matrix)));
   
-  std::cout << "Need P-Value: " << p_value << " with " << floor(p_value*vocabularyVolume(matrix)) << " words" << std::endl;
-  std::cout << "lower bound: " << (bounds.first) - scores_partial_sums.begin() << ", upper bound: " << (bounds.second) - scores_partial_sums.begin() << std::endl;
-  std::cout << "lower distance: " << (size_t)abs(std::distance(bounds.first, scores_partial_sums.begin())) << ", upper distance: " << (size_t)abs(std::distance(bounds.second, scores_partial_sums.begin())) << std::endl;
+//   std::cout << "Need P-Value: " << p_value << " with " << floor(p_value*vocabularyVolume(matrix)) << " words" << std::endl;
+//   std::cout << "lower bound: " << (bounds.first) - scores_partial_sums.begin() << ", upper bound: " << (bounds.second) - scores_partial_sums.begin() << std::endl;
+//   std::cout << "lower distance: " << (size_t)abs(std::distance(bounds.first, scores_partial_sums.begin())) << ", upper distance: " << (size_t)abs(std::distance(bounds.second, scores_partial_sums.begin())) << std::endl;
   
   size_t l_d = (size_t)abs(std::distance(bounds.first, scores_partial_sums.begin()));
   size_t u_d = (size_t)abs(std::distance(bounds.second, scores_partial_sums.begin()));
   
-  std::cout << "lower bound: " << (*bounds.first) << ", upper bound: " << (*bounds.second) << std::endl;
+//   std::cout << "lower bound: " << (*bounds.first) << ", upper bound: " << (*bounds.second) << std::endl;
   
   std::map<double,double>::iterator it = scores_hash.begin();
-  std::cout << "      threshold: "<< " " << (keys[l_d])/DISCRETIZATION_VALUE << std::endl;
-  std::cout << "      actual p-value is: " << (double)scores_partial_sums[l_d]/(double)vocabularyVolume(matrix) << std::endl;
+//   std::cout << "      threshold: "<< " " << (keys[l_d])/DISCRETIZATION_VALUE << std::endl;
+//   std::cout << "      actual p-value is: " << (double)scores_partial_sums[l_d]/(double)vocabularyVolume(matrix) << std::endl;
 
   
   threshold = (keys[l_d])/DISCRETIZATION_VALUE;
   
   return threshold;
+}
+
+std::vector<double> pvalues_by_thresholds(std::vector<double>& thresholds, double * scores_optimistic, pwmMatrix& matrix) {
+  double min_threshold = *std::min_element(thresholds.begin(), thresholds.end());
+  std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, min_threshold*DISCRETIZATION_VALUE);
+  
+  double volume = (double)vocabularyVolume(matrix);
+  std::vector<double> p_values;
+  p_values.reserve(thresholds.size());
+  
+  for (std::vector<double>::iterator i = thresholds.begin(); i != thresholds.end(); ++i) {
+    double counts_sum = 0.0;
+    for (std::map<double, double>::iterator k = counts.begin(); k != counts.end(); ++k) {
+      if ( (*k).first / DISCRETIZATION_VALUE >= *i ) {
+        counts_sum += (*k).second;
+      }
+    }
+    p_values.push_back(counts_sum/volume);
+//    std::cout << *i << " " << counts_sum << std::endl;
+  }
+//  std::cout << min_threshold << std::endl;
+  return p_values;
 }
 
 

@@ -15,4 +15,7 @@
 
 double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatrix& matrix);
 
+std::vector<double> pvalues_by_thresholds(std::vector<double>& thresholds, double * scores_optimistic, pwmMatrix& matrix);
+
+
 #endif

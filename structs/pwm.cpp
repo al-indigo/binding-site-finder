@@ -43,11 +43,13 @@ Pwm::Pwm(std::string pwmFilename, double p_value) {
 
   pwmFw.init(NUM_COLS, count/NUM_COLS);
   pwmRev.init(NUM_COLS, count/NUM_COLS);
-  pwmRounded.init(NUM_COLS, count/NUM_COLS);
+  pwmCeiled.init(NUM_COLS, count/NUM_COLS);
+//  pwmFloored.init(NUM_COLS, count/NUM_COLS);
   for (int k=0; k<count; k++) {
     pwmFw.matrix[k] = scorebuffer[k]; //test[k];
     pwmRev.matrix[k] = scorebuffer[count-k-1]; //test[count-k-1];
-    pwmRounded.matrix[k] = ceil(scorebuffer[k] * DISCRETIZATION_VALUE);
+    pwmCeiled.matrix[k] = ceil(scorebuffer[k] * DISCRETIZATION_VALUE);
+//    pwmFloored.matrix[k] = floor(scorebuffer[k] * DISCRETIZATION_VALUE);
   }
 
   lastPath.init(pwmFw.rows);
@@ -72,12 +74,18 @@ Pwm::Pwm(std::string pwmFilename, double p_value) {
 
   optimisticScoresFw = InitScoresAheadOptimistic(pwmFw);
   optimisticScoresRev = InitScoresAheadOptimistic(pwmRev);
-  optimisticScoresRoundedFw = InitScoresAheadOptimistic(pwmRounded);
+  optimisticScoresCeiledFw = InitScoresAheadOptimistic(pwmCeiled);
+//  optimisticScoresFlooredFw = InitScoresAheadOptimistic(pwmFloored);
   
-  double upper_threshold = threshold_by_pvalue(p_value, optimisticScoresRoundedFw, pwmRounded);
+  double upper_threshold = threshold_by_pvalue(p_value, optimisticScoresCeiledFw, pwmCeiled);
   threshold = upper_threshold;
   return;
 }
+
+std::vector<double> Pwm::getPValues(std::vector<double>& thresholds) {
+  return pvalues_by_thresholds(thresholds, optimisticScoresCeiledFw, pwmCeiled);
+}
+
 
 double * Pwm::InitScoresAheadOptimistic(pwmMatrix & pwm) {
   double * scoreVector = new double[pwm.rows + 1];
