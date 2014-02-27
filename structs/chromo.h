@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 class Chromo {
   std::string filename;
@@ -43,6 +44,9 @@ public:
 // NOTE: We are returning size of chromo as if it was stored in string: without null character
     size_t getPartLength (size_t part_number);
     void releasePart (size_t part_number);
+    
+    void getWordsAsPaths (const std::set<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
+    
    ~Chromo ();
 };
 

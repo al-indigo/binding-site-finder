@@ -7,6 +7,7 @@
 #include <fstream>
 #include <algorithm>
 #include <limits>
+#include <assert.h>
 
 #include "chromo.h"
 
@@ -78,7 +79,42 @@ size_t Chromo::getPartOffset ( size_t part_number ) {
     return start_part[part_number];
 }
 
-//TODO: std::vector<char> getWord (position, length);
+inline static void wordToPath (char * buffer, char * destination, size_t length) {
+  for (size_t i = 0; i < length; i++) {
+    if (buffer[i] == 'A') {
+        destination[i] = 0;
+    } else if (buffer[i] == 'C') {
+        destination[i] = 1;
+    } else if (buffer[i] == 'G') {
+        destination[i] = 2;
+    } else if (buffer[i] == 'T') {
+        destination[i] = 3;
+    } else {
+      assert(true);
+    }
+  }
+}
+
+
+void Chromo::getWordsAsPaths (const std::set<size_t>& positions, size_t length, std::vector <std::vector<char> >& result) {
+  for (std::vector<std::vector<char> >::iterator i = result.begin(); i != result.end(); ++i) {
+    (*i).resize(length, -1);
+  }
+  
+  std::cout << "Preparing to put words, size reserved is " << result[0].size() << std::endl;
+  
+  std::ifstream fin(filename.c_str(), std::ifstream::in);
+
+  char buffer[length];
+  size_t counter = 0;
+  for (std::set<size_t>::iterator i = positions.begin(); i != positions.end(); ++i, counter++) {
+    fin.seekg(*i);
+    fin.read(buffer, length);
+    wordToPath(buffer, &((result[counter])[0]), length);
+  }
+  fin.close();
+  std::cout << "Words as paths are in" << std::endl;
+}
 
 size_t Chromo::getNumberOfParts() {
     return (end - start)/READ_BLOCK_SIZE + 1;

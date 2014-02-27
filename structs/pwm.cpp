@@ -82,6 +82,11 @@ Pwm::Pwm(std::string pwmFilename, double p_value) {
   return;
 }
 
+double Pwm::get_threshold_by_pvalue ( double pvalue ) {
+  return threshold_by_pvalue(pvalue, optimisticScoresCeiledFw, pwmCeiled);
+}
+
+
 std::vector<double> Pwm::getPValues(std::vector<double>& thresholds) {
   return pvalues_by_thresholds(thresholds, optimisticScoresCeiledFw, pwmCeiled);
 }
@@ -155,7 +160,31 @@ std::vector<std::vector<char> > Pwm::getWords(unsigned int count) {
 Pwm::~Pwm() {
   delete [] optimisticScoresFw;
   delete [] optimisticScoresRev;
+  delete [] optimisticScoresCeiledFw;
 }
+
+
+void Pwm::getScores (std::vector< std::vector< char > >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev) {
+  scoresFw.reserve(words.size());
+  scoresRev.reserve(words.size());
+  std::cout << "Calculating scores again" << std::endl;
+  for (std::vector<std::vector<char> >::iterator i = words.begin(); i != words.end(); ++i) {
+    std::vector<char> word = *i;
+    double fwScore = 0.0;
+    double revScore = 0.0;
+    
+    for (int k = 0; k < word.size(); k++) {
+      fwScore += pwmFw(k, word[k]);
+      revScore += pwmRev(k, word[k]);
+    }
+    scoresFw.push_back(fwScore);
+    scoresRev.push_back(revScore);
+  }
+  std::cout << "Scores ready" << std::endl;
+  return;
+
+}
+
 
 
 /* Maybe we will use it to predict the worst case; not now, it's overkill for now */
