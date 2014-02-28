@@ -180,8 +180,8 @@ int main(int argc, char **argv) {
   }
   
   for (int i = 0; i < merged_files.size(); i++) {
-    std::ifstream fin(merged_files[i]);
-    std::ofstream fout(result_filenames[i]);
+    std::ifstream fin(merged_files[i].c_str());
+    std::ofstream fout(result_filenames[i].c_str());
     fin >> std::setbase(16);
     while (fin) {
       std::set<size_t> positions_to_read_again;

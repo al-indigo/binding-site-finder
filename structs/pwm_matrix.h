@@ -2,6 +2,7 @@
 #define PWM_MATRIX_H
 
 #include <limits>
+#include <cstdlib>
 
 typedef struct pwm_matrix {
   double * matrix;
