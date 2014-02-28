@@ -171,17 +171,23 @@ std::vector<double> pvalues_by_thresholds(std::vector<double>& thresholds, doubl
   std::vector<double> p_values;
   p_values.reserve(thresholds.size());
   
+  std::map<double, double> cache;
+  
   for (std::vector<double>::iterator i = thresholds.begin(); i != thresholds.end(); ++i) {
-    double counts_sum = 0.0;
-    for (std::map<double, double>::iterator k = counts.begin(); k != counts.end(); ++k) {
-      if ( (*k).first / DISCRETIZATION_VALUE >= *i ) {
-        counts_sum += (*k).second;
+    std::map<double, double>::iterator search = cache.find(*i);
+    if (search != cache.end()) {
+      p_values.push_back(search->second);
+    } else {
+      double counts_sum = 0.0;
+      for (std::map<double, double>::iterator k = counts.begin(); k != counts.end(); ++k) {
+        if ( (*k).first / DISCRETIZATION_VALUE >= *i ) {
+          counts_sum += (*k).second;
+        }
       }
+      p_values.push_back(counts_sum/volume);
+      cache.insert(std::make_pair(*i, counts_sum/volume));
     }
-    p_values.push_back(counts_sum/volume);
-//    std::cout << *i << " " << counts_sum << std::endl;
   }
-//  std::cout << min_threshold << std::endl;
   return p_values;
 }
 
