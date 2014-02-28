@@ -33,11 +33,11 @@ int main(int argc, char **argv) {
 
 //  double score_threshold = -8.0;
 //  double p_value = 0.000000001;
-    double p_value = 0.00107763671875;
+    double p_value = 0.0000507763671875;
 
-//  Pwm matrix("/Users/al/Programming/perfectosape/test_data/pwm/KLF4_f2.pwm", p_value);
+  Pwm matrix("/Users/al/Programming/perfectosape/test_data/pwm/KLF4_f2.pwm", p_value);
   
-  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", p_value);
+//  Pwm matrix("/Users/al/Downloads/pwms/AHR_si.pat", p_value);
 //  Pwm matrix("/Users/al/Downloads/pwms/SOX17_f2.pat", score_threshold);
 //  Pwm matrix("/Users/al/Downloads/pwms/TAL1_f2.pat", p_value);
 //  Pwm matrix("/Users/al/Downloads/pwms/EOMES_f1.pat", score_threshold);
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     
 //  Pwm matrix("/Users/al/Downloads/pwms/PAX2_f1.pat", score_threshold);
   
-  size_t mem_allowed = 8*512; //memory to spend in MB. Don't set it less than READ_BLOCK_SIZE/(1024*1024)
+  size_t mem_allowed = 16*512; //memory to spend in MB. Don't set it less than READ_BLOCK_SIZE/(1024*1024)
   
   // This is counted in experimental way: it's clear that consumption depends on length, but the coefficient
   // is just experimental for 5 matrices. Real consumption is always less than here (aho-corasick is quite tricky).
@@ -188,13 +188,9 @@ int main(int argc, char **argv) {
       for (int k = 0; k < mem_allowed * 1024 * 1024 / 8 && fin; k++) {
         size_t buf = 0;
         fin >> buf;
-        if (buf == 0 && k != 0) { continue; }
+        if (buf == 0 && k != 0) { continue; } //TODO: deal with eof correctly
           
         positions_to_read_again.insert(buf);
-        
-        if (buf == 0) {
-          std::cout << "I'm null";
-        }
       }
       
       std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size());
@@ -223,7 +219,7 @@ int main(int argc, char **argv) {
           narrowPeakScore = 100 + (int) (900 * ((0.001 - pv)/(0.00099) ) );
         }
         
-        std::cout << descriptions[i] << "\t" 
+        fout      << descriptions[i] << "\t" 
                   << *positerator << "\t" << *positerator << "\t"
                   << ".\t"
                   << narrowPeakScore << "\t" 
@@ -237,6 +233,7 @@ int main(int argc, char **argv) {
     }
     
     fin.close();
+    fout.close();
   }
   
   {
