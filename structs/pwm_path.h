@@ -2,6 +2,7 @@
 #define PWM_PATH_H
 
 #include <vector>
+#include <cstring>
 
 #define NUM_COLS 4
 

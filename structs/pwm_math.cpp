@@ -5,6 +5,7 @@
 #include <numeric>
 #include <utility>
 #include <stdlib.h>
+#include <algorithm>
 
 /* TODO: NOTE: I know that using doubles in comparisons (or find) is not semantically right, need to fix sometime */
 
