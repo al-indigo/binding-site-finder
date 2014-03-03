@@ -28,7 +28,6 @@ class Chromo {
   std::vector<std::size_t> end_part;
   std::vector<std::size_t> length_part;
   char * sequence;
-  std::size_t length;
   
 public:
     Chromo (std::string _filename, std::string _description, std::size_t _start, std::size_t _end);
