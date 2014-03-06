@@ -23,10 +23,7 @@ class Pwm {
   double * optimisticScoresRev;
   double * optimisticScoresCeiledFw;
 //  double * optimisticScoresFlooredFw;
-  
-  // This scores are needed to understand if we have too much variants. For the future
-//  double * pessimisticScoresFw;
-//  double * pessimisticScoresRev;
+
   
   pwmPath lastPath;
   
@@ -43,8 +40,7 @@ public:
     std::vector<double>                 getPValues(std::vector<double>& thresholds);
     
     void                                getScores(std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev);
-    /* Maybe we will use it to predict the worst case; not now, it's overkill for now */
-    //void InitScoresAheadPessimistic(double * scoreVector, pwmMatrix & pwm);
+
 };
 
 #endif

@@ -13,13 +13,11 @@ class ChromoVector {
 public:
   ChromoVector (std::vector<std::string> filenames,
                 std::vector<std::string> description,
-                std::vector<std::string> _result_filenames,
                 std::vector<size_t> start,
                 std::vector<size_t> end);
   size_t size();
   std::string& getFilename(size_t sequence_number);
   std::string& getDescription(size_t sequence_number);
-  std::string& getResultFilename (size_t sequence_number);
   char * getSeq (size_t sequence_number, size_t part_number);
   size_t getNumberOfParts (size_t sequence_number);
   size_t getPartLength ( size_t sequence_number, size_t part_number );

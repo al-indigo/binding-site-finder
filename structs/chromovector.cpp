@@ -7,9 +7,8 @@
 
 ChromoVector::ChromoVector (std::vector<std::string> filenames, 
                             std::vector<std::string> description,
-                            std::vector<std::string> _result_filenames,
                             std::vector<size_t> start, 
-                            std::vector<size_t> end) : result_filenames(_result_filenames) {
+                            std::vector<size_t> end) {
   if (!(filenames.size() == description.size() && 
         description.size() == start.size() &&
         start.size() == end.size() &&
@@ -34,10 +33,6 @@ std::string& ChromoVector::getFilename ( size_t sequence_number ) {
 
 std::string& ChromoVector::getDescription ( size_t sequence_number ) {
   return chromovector[sequence_number]->getDescription();
-}
-
-std::string& ChromoVector::getResultFilename ( size_t sequence_number) {
-  return result_filenames[sequence_number];
 }
 
 char* ChromoVector::getSeq ( size_t sequence_number, size_t part_number ) {
