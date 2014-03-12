@@ -221,7 +221,7 @@ int main(int argc, char** argv) {
   
   std::string cli(argv[1]);
   
-  std::ifstream options(cli);
+  std::ifstream options(cli.c_str());
   
   jsonxx::Object task;
   assert(task.parse(options));
