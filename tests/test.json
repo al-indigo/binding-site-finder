@@ -4,18 +4,20 @@
  	"p-value": 0.001507763671875,
  	"result-folder": "/Users/al/Programming/binding-site-finder/build/results/",
  	"result-filename": "testres",
+ 	"status-folder": "/Users/al/Programming/binding-site-finder/build/results/",
+ 	"status-filename": "teststatus",
  	"tasks": [
  		{
  			"chromofile": "/Users/al/Downloads/genome/chr1_upper.plain",
  			"chromoname": "chr1",
  			"start": 0,
- 			"end": 200190
+ 			"end": 2001900
  		},
  		{
  			"chromofile": "/Users/al/Downloads/genome/chr2_upper.plain",
  			"chromoname": "chr2",
  			"start": 15000,
- 			"end": 300190
+ 			"end": 3001900
  		}
  	]
  }
