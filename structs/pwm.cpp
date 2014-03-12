@@ -115,7 +115,7 @@ double * Pwm::InitScoresAheadOptimistic(pwmMatrix & pwm) {
 std::vector<std::vector<char> > Pwm::getWords(unsigned int count) {
   
   std::vector<std::vector<char> > words;
-  words.reserve(count * sizeof(std::string::value_type) * lastPath.length );
+//  words.reserve(count * sizeof(std::string::value_type) * lastPath.length );
   /* wordcount is not a regular counter: it follows fit words, not number of iterations */
   
   size_t fw_fits = 0;
