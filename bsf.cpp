@@ -205,7 +205,7 @@ int predict(size_t mem_allowed,
   fout.close();
   
   std::ofstream status_out((status_folder + status_filename).c_str());
-  status_out << "{\"percent done\": 100, \"result\":" << "[\"http://bsf.at.ispras.ru/results/" << result_filename << "\"], \"explain\": \"task complete\"}";
+  status_out << "{\"percent done\": 100, \"result\":" << "[\"http://bsf.at.ispras.ru/result-files/" << result_filename << "\"], \"explain\": \"task complete\"}";
   status_out.close();    
  
   return 0;
