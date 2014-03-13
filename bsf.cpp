@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <math.h>
+#include <cstdio>
 
 #include "ahoc/AhoCorasickPlus.h"
 #include "structs/pwm.h"
@@ -196,6 +197,7 @@ int predict(size_t mem_allowed,
     }
     
     fin.close();
+    remove(merged_files[i].c_str());
     
     status = 75.0 + 25.0 * (double) i / (double) merged_files.size();
     std::ofstream status_out((status_folder + status_filename).c_str());
