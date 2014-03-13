@@ -114,7 +114,7 @@ int predict(size_t mem_allowed,
           sequences.releasePart(s_i, p_i);
           status = 60 * (double)totalWords / voc_volume;
           std::ofstream status_out((status_folder + status_filename).c_str());
-          status_out << "{\"percent done\": " << (int)status << ", \"result\": \"\"}";
+          status_out << "{\"percent done\": " << (int)status << ", \"result\": [\"\"], \"explain\": \"searching\"}";
           status_out.close();
       }
     }
@@ -138,7 +138,7 @@ int predict(size_t mem_allowed,
     
     status = 60.0 + 15.0 * (double)i/(double)files_to_merge.size();
     std::ofstream status_out((status_folder + status_filename).c_str());
-    status_out << "{\"percent done\": " << (int)status << ", \"result\": \"\"}";
+    status_out << "{\"percent done\": " << (int)status << ", \"result\": [\"\"], \"explain\": \"merging files\"}";
     status_out.close();
   }
 
@@ -199,13 +199,13 @@ int predict(size_t mem_allowed,
     
     status = 75.0 + 25.0 * (double) i / (double) merged_files.size();
     std::ofstream status_out((status_folder + status_filename).c_str());
-    status_out << "{\"percent done\": " << (int)status << ", \"result\": \"\"}";
+    status_out << "{\"percent done\": " << (int)status << ", \"result\": [\"\"], \"explain\": \"recomputing scores and p-values\"}";
     status_out.close();    
   }
   fout.close();
   
   std::ofstream status_out((status_folder + status_filename).c_str());
-  status_out << "{\"percent done\": 100, \"result\":" << "\"http://bsf.at.ispras.ru/results/" << result_filename << "\"}";
+  status_out << "{\"percent done\": 100, \"result\":" << "[\"http://bsf.at.ispras.ru/results/" << result_filename << "\"], \"explain\": \"task complete\"}";
   status_out.close();    
  
   return 0;
