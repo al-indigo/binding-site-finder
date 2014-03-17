@@ -125,17 +125,17 @@ int predict(size_t mem_allowed,
   
   for (int i = 0; i < files_to_merge.size(); i++) {
     time_t t = time(NULL);
-    std::string tempfilename = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 0, &t);
+    std::string tempfilename = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + 0, &t);
     std::ofstream fout(tempfilename.c_str());
     fout.close();
     
     for (int j = 0; j < files_to_merge[i].size(); j++) {
-      std::string read_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), j, &t);
-      std::string write_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), j+1, &t);
+      std::string read_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + j, &t);
+      std::string write_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + j+1, &t);
       
       merge_sort(files_to_merge[i][j], read_file, write_file);
     }
-    merged_files.push_back(prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), files_to_merge[i].size(), &t));
+    merged_files.push_back(prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + files_to_merge[i].size(), &t));
     
     status = 60.0 + 15.0 * (double)i/(double)files_to_merge.size();
     std::ofstream status_out((status_folder + status_filename).c_str());
