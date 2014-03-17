@@ -149,12 +149,12 @@ int predict(size_t mem_allowed,
     fin >> std::setbase(16);
     while (fin) {
       std::set<size_t> positions_to_read_again;
-      for (int k = 0; k < mem_allowed * 1024 * 1024 / 8 && fin; k++) {
-        size_t buf = 0;
-        fin >> buf;
-        if (buf == 0 && k != 0) { continue; } //TODO: deal with eof correctly
-          
+      size_t buf = 0;
+      for (int k = 0; k < mem_allowed * 1024 * 1024 / 8 && fin >> buf; k++) {
         positions_to_read_again.insert(buf);
+      }
+      if (positions_to_read_again.empty()) {
+        continue;
       }
       
       std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size());
