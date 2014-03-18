@@ -180,7 +180,8 @@ int predict(size_t mem_allowed,
         } else if (pv < 0.00001) {
           narrowPeakScore = 1000;
         } else {
-          narrowPeakScore = 100 + (int) (900 * ((0.001 - pv)/(0.00099) ) );
+//          narrowPeakScore = 100 + (int) (900 * ((0.001 - pv)/(0.00099) ) );
+          narrowPeakScore = (int) (100.0 + 900.0 * (-3.0 - log10f(pv)) / 2.0);
         }
         
         fout      << chromonames[i] << "\t" 
@@ -224,6 +225,10 @@ int main(int argc, char** argv) {
   std::string cli(argv[1]);
   
   std::ifstream options(cli.c_str());
+  
+  if (!options) {
+    exit(1);
+  }
   
   jsonxx::Object task;
   assert(task.parse(options));
