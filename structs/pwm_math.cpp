@@ -139,8 +139,9 @@ double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatri
   return threshold;
 }
 
-std::vector<double> pvalues_by_thresholds(std::vector<double>& thresholds, double * scores_optimistic, pwmMatrix& matrix) {
-  double min_threshold = *std::min_element(thresholds.begin(), thresholds.end());
+std::vector<double> pvalues_by_thresholds(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix) {
+//  double min_threshold = *std::min_element(thresholds.begin(), thresholds.end());
+  double min_threshold = cutoff;
   std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, (min_threshold)*DISCRETIZATION_VALUE);
   
   double volume = (double)vocabularyVolume(matrix);
@@ -155,10 +156,16 @@ std::vector<double> pvalues_by_thresholds(std::vector<double>& thresholds, doubl
   
   std::map<double, double> cache;
   
+  size_t counter = 0;
   for (std::vector<double>::iterator i = thresholds.begin(); i != thresholds.end(); ++i) {
+    if (*i < cutoff) {
+      p_values.push_back(1.0);
+      continue;
+    }
     std::map<double, double>::iterator search = cache.find(*i);
     if (search != cache.end()) {
       p_values.push_back(search->second);
+      counter++;
     } else {
       double counts_sum = 0.0;
 
@@ -169,6 +176,7 @@ std::vector<double> pvalues_by_thresholds(std::vector<double>& thresholds, doubl
       cache.insert(std::make_pair(*i, counts_sum/volume));
     }
   }
+  std::cout << "In cache: " << counter << std::endl;
   return p_values;
 }
 

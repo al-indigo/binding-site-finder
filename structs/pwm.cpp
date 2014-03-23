@@ -79,6 +79,10 @@ Pwm::Pwm(std::string pwmFilename, double p_value) {
   
   double upper_threshold = threshold_by_pvalue(p_value, optimisticScoresCeiledFw, pwmCeiled);
   threshold = upper_threshold;
+  
+  initPrecalcMap(precalcmapFw, pwmFw);
+  initPrecalcMap(precalcmapRev, pwmRev);
+  
   return;
 }
 
@@ -88,7 +92,7 @@ double Pwm::get_threshold_by_pvalue ( double pvalue ) {
 
 
 std::vector<double> Pwm::getPValues(std::vector<double>& thresholds) {
-  return pvalues_by_thresholds(thresholds, optimisticScoresCeiledFw, pwmCeiled);
+  return pvalues_by_thresholds(thresholds, threshold, optimisticScoresCeiledFw, pwmCeiled);
 }
 
 
@@ -122,8 +126,8 @@ std::vector<std::vector<char> > Pwm::getWords(unsigned int count) {
   size_t rev_fits = 0;
   
   for (int wordcount = 0; wordcount < count && !lastPath.final; lastPath.incr()) {
-    double fwScore = 0;
-    double revScore = 0;
+    double fwScore = 0.0;
+    double revScore = 0.0;
     bool needBreak = false;
     for (int depth = 0; depth < lastPath.length; depth++) {
 //      fwScore += pwmFw(lastPath.path[depth], depth);
@@ -157,6 +161,54 @@ std::vector<std::vector<char> > Pwm::getWords(unsigned int count) {
 }
 
 
+//NOTE: This implementation fails without failing branches prediction; need to think more.
+std::vector<std::vector<char> > Pwm::getWords2(unsigned int count) {
+  int blocksNumber = (4 + pwmFw.rows - 1)/4;
+  std::vector<std::vector<char> > words;
+  size_t fw_fits = 0;
+  size_t rev_fits = 0;
+  for (int wordcount = 0; wordcount < count && !lastPath.final; lastPath.incr()) {
+    double fwScore = 0.0;
+    double revScore = 0.0;
+    bool needBreak = false;    
+    for (int i = 0; i < blocksNumber; i++) {
+      fwScore += precalcmapFw[i][*((uint32_t * )(lastPath.path + i*4))];
+      revScore += precalcmapRev[i][*((uint32_t * )(lastPath.path + i*4))];
+    }
+    if (fwScore >= threshold || revScore >= threshold) {
+      words.push_back(lastPath.getWord());
+      wordcount++;
+#ifdef DDEBUG_PRINT
+      std::cout << "Word fits: " << lastPath.getWord() << " with score: " << (fwScore > threshold ? fwScore : revScore) << std::endl;
+#endif
+      fwScore > threshold ? fw_fits++ : rev_fits++;
+    }
+  }
+//#ifdef DDEBUG_PRINT
+  std::cout << "Internal check: #patterns fit: " << words.size() << " fw: " << fw_fits << " rev: " << rev_fits << std::endl;
+//#endif
+  return words;  
+}
+
+// We use this function to minimize operations for calculation of scores
+void Pwm::initPrecalcMap (std::vector<std::map<uint32_t, double> >& precalcmap, pwmMatrix& pwm) {
+  int blocksNumber = (4 + pwm.rows - 1)/4; //ceiling for int division (looks creepy)
+  for (int i = 0; i < blocksNumber; i++) {
+    pwmPath tempPath;
+    tempPath.init(4);
+    std::map<uint32_t, double> curblockmap;
+    for ( ; !tempPath.final; tempPath.incr()) {
+      // i'm unrolling the loop by hand here to be sure what's going on.
+      double score = pwm(i*4, tempPath.path[0]) + pwm(i*4 + 1, tempPath.path[1]) + pwm(i*4 + 2, tempPath.path[2]) + pwm(i*4 + 3, tempPath.path[3]);
+      uint32_t key = *((uint32_t * )tempPath.path);
+      curblockmap[key] = score;
+    }
+    precalcmap.push_back(curblockmap);
+  }
+  
+}
+
+
 Pwm::~Pwm() {
   delete [] optimisticScoresFw;
   delete [] optimisticScoresRev;
@@ -185,26 +237,29 @@ void Pwm::getScores (std::vector< std::vector< char > >& words, std::vector<doub
 
 }
 
-
-
-/* Maybe we will use it to predict the worst case; not now, it's overkill for now */
-/*void Pwm::InitScoresAheadPessimistic(double * scoreVector, pwmMatrix & pwm) {
-  scoreVector = new double[pwm.rows];
-  memset(scoreVector, 0,  sizeof(double) * pwm.rows);
-  for (int i = pwm.rows - 1; i > 0; --i) {
-    double min = std::numeric_limits< double >::max();
-    for (int j = 0; j < pwm.cols; ++j) {
-      min = min <= pwm(i,j) ? min : pwm(i,j);
-    }
-    scoreVector[i-1] = scoreVector[i] + min;
-  }
+void Pwm::getScores2 (std::vector< std::vector< char > >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev) {
+  scoresFw.reserve(words.size());
+  scoresRev.reserve(words.size());
+  std::cout << "Calculating scores again (version 2)" << std::endl;
   
-#ifdef DDEBUG_PRINT
-  for (int i = 0; i < pwm.rows; i++) {
-    std::cout << scoreVector[i] << " ; " << std::endl;
-  }
-#endif
+  int blocksNumber = (4 + pwmFw.rows - 1)/4;
+  char * buffer = new char[pwmFw.rows * (4 + pwmFw.rows - 1)/4 ]; 
+  memset(buffer, 0, sizeof(char) * pwmFw.rows * (4 + pwmFw.rows - 1)/4 );
 
+  for (std::vector<std::vector<char> >::iterator i = words.begin(); i != words.end(); ++i) {
+    std::vector<char> word = *i;
+    memcpy(buffer, &word[0], word.size() * sizeof(char));
+    double fwScore = 0.0;
+    double revScore = 0.0;
+    for (int i = 0; i < blocksNumber; i++) {
+      fwScore += precalcmapFw[i][*((uint32_t * )(buffer + i*4))];
+      revScore += precalcmapRev[i][*((uint32_t * )(buffer + i*4))];
+    }
+    scoresFw.push_back(fwScore);
+    scoresRev.push_back(revScore);
+  }
+  delete[] buffer;
+
+  std::cout << "Scores ready" << std::endl;
   return;
 }
-*/

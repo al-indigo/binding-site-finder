@@ -56,7 +56,15 @@ int predict(size_t mem_allowed,
     AhoCorasickPlus atm;
     {
       std::vector<std::vector<char> > patterns;
+      
+      double tstart, tstop, ttime;
+      tstart = (double)clock()/CLOCKS_PER_SEC;
+      
       patterns = matrix.getWords(patterns_allowed);
+      
+      tstop = (double)clock()/CLOCKS_PER_SEC;
+      std::cout << "Got words for " << tstop - tstart << " seconds" << std::endl; 
+      
       for (size_t i = 0; i < patterns.size(); i++)
       {
           AhoCorasickPlus::EnumReturnStatus res;
@@ -164,14 +172,27 @@ int predict(size_t mem_allowed,
       std::vector<double> pvaluesRev;
       
       sequences.getWordsAsPaths(i, positions_to_read_again, matrix.getLength(), words_as_paths);
+      
+      
+      double tstart, tstop, ttime;
+      tstart = (double)clock()/CLOCKS_PER_SEC;
+      
       matrix.getScores(words_as_paths, scoresFw, scoresRev);
       
+      tstop = (double)clock()/CLOCKS_PER_SEC;
+      std::cout << "Got scores for " << tstop - tstart << " seconds" << std::endl; 
+      
+      tstart = (double)clock()/CLOCKS_PER_SEC;
       pvaluesFw = matrix.getPValues(scoresFw);
       pvaluesRev = matrix.getPValues(scoresRev);
+      tstop = (double)clock()/CLOCKS_PER_SEC;
+      std::cout << "Got p-values for " << tstop - tstart << " seconds" << std::endl; 
       
       std::set<size_t>::iterator positerator = positions_to_read_again.begin()++;
       std::cout.precision(8);
       std::cout << "Result file: " << result_filename << std::endl;
+      
+      tstart = (double)clock()/CLOCKS_PER_SEC;
       for (int k = 0; k < positions_to_read_again.size() ; k++) {
         double pv = std::min(pvaluesFw[k], pvaluesRev[k]);
         int narrowPeakScore = 0;
@@ -193,6 +214,8 @@ int predict(size_t mem_allowed,
                   << pv << "\t" << "-1\t-1" << std::endl;
         positerator++;
       }
+      tstop = (double)clock()/CLOCKS_PER_SEC;
+      std::cout << "Formatted out for " << tstop - tstart << " seconds" << std::endl; 
       
       positions_to_read_again.clear();
     }
