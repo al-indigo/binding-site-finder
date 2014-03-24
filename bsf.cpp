@@ -18,6 +18,7 @@
 #include "utils/mergesort_infile.h"
 #include "utils/prepare_filename.h"
 #include "utils/jsonxx.h"
+#include "functions/functions.h"
 
 int predict(size_t mem_allowed,
             std::string matrix_filename, 
@@ -32,6 +33,10 @@ int predict(size_t mem_allowed,
             std::vector<size_t> ends) {
   
 //NOTE: results_path should exist (I'm ruling all the filenames stuff with python wrapper - it's easier)
+  {
+    std::ofstream fout((result_folder + result_filename).c_str(), std::fstream::out);
+    fout.close();
+  }
  
   Pwm matrix(matrix_filename.c_str(), p_value);
  
@@ -44,87 +49,24 @@ int predict(size_t mem_allowed,
   
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
 
-  std::vector<std::vector<char> > patterns;
-
   AhoCorasickPlus atm;
   
-  size_t totalWords = 0;
+  size_t total_words = 0;
   double voc_volume = (double)(matrix.getLength()^4) * p_value;
   double status = 0.0;
   
   while (!matrix.hasMoreWords()) {
     AhoCorasickPlus atm;
     {
-      std::vector<std::vector<char> > patterns;
-      
-      double tstart, tstop, ttime;
-      tstart = (double)clock()/CLOCKS_PER_SEC;
-      
-      patterns = matrix.getWords(patterns_allowed);
-      
-      tstop = (double)clock()/CLOCKS_PER_SEC;
-      std::cout << "Got words for " << tstop - tstart << " seconds" << std::endl; 
-      
-      for (size_t i = 0; i < patterns.size(); i++)
-      {
-          AhoCorasickPlus::EnumReturnStatus res;
-          AhoCorasickPlus::PatternId patId = totalWords++;
-          res = atm.addPattern(patterns[i], patId);
-          if (res!=AhoCorasickPlus::RETURNSTATUS_SUCCESS)
-          {
-              std::cerr << "Failed to add: " << std::endl;
-          }
-      }
-
-      patterns.clear();
+      init_ahoc(atm, matrix, patterns_allowed, total_words);
     }
     
     atm.finalize();
     
     for (size_t s_i = 0; s_i < sequences.size(); s_i++) {
       for (size_t p_i = 0; p_i < sequences.getNumberOfParts(s_i); p_i++) {
-          
-          std::vector<size_t> result_vector;
-          result_vector.reserve(READ_BLOCK_SIZE);
-        
-          char * seq = sequences.getSeq(s_i, p_i);
-          size_t length = sequences.getPartLength(s_i, p_i);
-          size_t offset = sequences.getAbsoluteOffset(s_i, p_i);
-
-          AhoCorasickPlus::Match aMatch;
-          size_t occurances = 0;
-          std::cout << "Results for " << sequences.getFilename(s_i) << " as " << sequences.getDescription(s_i) << " part #" << p_i << std::endl;
-
-          atm.search(seq, length, false);
-          while (atm.findNext(aMatch))
-          {
-            result_vector.push_back(aMatch.position + offset - matrix.getLength());
-            occurances++;
-          }
-          
-          std::cout << "Occurances found: " << occurances << std::endl;
-          if (occurances > 0) {
-            std::string tempfilename = prepare_filename(result_folder + result_filename, "bsf-part-", (s_i+1)*10000000 + p_i);
-            std::ofstream fout(tempfilename.c_str());
-            char * fbuf = new char[FSTREAM_BUF_SIZE];
-            fout.rdbuf()->pubsetbuf(fbuf, FSTREAM_BUF_SIZE);
-            fout << std::setbase(16);
-
-            files_to_merge[s_i].push_back(tempfilename);
-            
-            for (std::vector<size_t>::iterator z = result_vector.begin(); z != result_vector.end(); ++z) {
-              fout << *z << std::endl;
-            }
-            
-            fout.close();
-            delete [] fbuf;
-          }
-          
-          sequences.releasePart(s_i, p_i);
-          status = 60 * (double)totalWords / voc_volume;
-          std::ofstream status_out((status_folder + status_filename).c_str());
-          status_out << "{\"percent done\": " << (int)status << ", \"result\": [\"\"], \"explain\": \"searching\"}";
-          status_out.close();
+        ahoc_search(s_i, p_i, atm, matrix, sequences, result_folder, result_filename, total_words, files_to_merge);
+        write_status(60 * (double)total_words / voc_volume, status_folder, status_filename, "searching", "");
       }
     }
   }
@@ -132,23 +74,9 @@ int predict(size_t mem_allowed,
   std::vector<std::string> merged_files;
   
   for (int i = 0; i < files_to_merge.size(); i++) {
-    time_t t = time(NULL);
-    std::string tempfilename = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + 0, &t);
-    std::ofstream fout(tempfilename.c_str());
-    fout.close();
+    merge_files(i, result_folder, result_filename, files_to_merge, merged_files);
     
-    for (int j = 0; j < files_to_merge[i].size(); j++) {
-      std::string read_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + j, &t);
-      std::string write_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + j+1, &t);
-      
-      merge_sort(files_to_merge[i][j], read_file, write_file);
-    }
-    merged_files.push_back(prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(i+1) + files_to_merge[i].size(), &t));
-    
-    status = 60.0 + 15.0 * (double)i/(double)files_to_merge.size();
-    std::ofstream status_out((status_folder + status_filename).c_str());
-    status_out << "{\"percent done\": " << (int)status << ", \"result\": [\"\"], \"explain\": \"merging files\"}";
-    status_out.close();
+    write_status(60.0 + 15.0 * (double)i/(double)files_to_merge.size(), status_folder, status_filename, "merging files", "");
   }
 
   std::ofstream fout((result_folder + result_filename).c_str(), std::fstream::app);
@@ -157,82 +85,22 @@ int predict(size_t mem_allowed,
     fin >> std::setbase(16);
     while (fin) {
       std::set<size_t> positions_to_read_again;
-      size_t buf = 0;
-      for (int k = 0; k < mem_allowed * 1024 * 1024 / 8 && fin >> buf; k++) {
-        positions_to_read_again.insert(buf);
-      }
-      if (positions_to_read_again.empty()) {
-        continue;
-      }
+      std::vector<double> scoresFw, scoresRev, pvaluesFw, pvaluesRev;
+          
+      recalc_scores_p_values(fin, positions_to_read_again, mem_allowed, matrix, sequences, i, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
+      if (positions_to_read_again.size() == 0) continue;
       
-      std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size());
-      std::vector<double> scoresFw;
-      std::vector<double> scoresRev;
-      std::vector<double> pvaluesFw;
-      std::vector<double> pvaluesRev;
-      
-      sequences.getWordsAsPaths(i, positions_to_read_again, matrix.getLength(), words_as_paths);
-      
-      
-      double tstart, tstop, ttime;
-      tstart = (double)clock()/CLOCKS_PER_SEC;
-      
-      matrix.getScores(words_as_paths, scoresFw, scoresRev);
-      
-      tstop = (double)clock()/CLOCKS_PER_SEC;
-      std::cout << "Got scores for " << tstop - tstart << " seconds" << std::endl; 
-      
-      tstart = (double)clock()/CLOCKS_PER_SEC;
-      pvaluesFw = matrix.getPValues(scoresFw);
-      pvaluesRev = matrix.getPValues(scoresRev);
-      tstop = (double)clock()/CLOCKS_PER_SEC;
-      std::cout << "Got p-values for " << tstop - tstart << " seconds" << std::endl; 
-      
-      std::set<size_t>::iterator positerator = positions_to_read_again.begin()++;
-      std::cout.precision(8);
-      std::cout << "Result file: " << result_filename << std::endl;
-      
-      tstart = (double)clock()/CLOCKS_PER_SEC;
-      for (int k = 0; k < positions_to_read_again.size() ; k++) {
-        double pv = std::min(pvaluesFw[k], pvaluesRev[k]);
-        int narrowPeakScore = 0;
-        if (pv > 0.001) {
-          narrowPeakScore = 100; 
-        } else if (pv < 0.00001) {
-          narrowPeakScore = 1000;
-        } else {
-//          narrowPeakScore = 100 + (int) (900 * ((0.001 - pv)/(0.00099) ) );
-          narrowPeakScore = (int) (100.0 + 900.0 * (-3.0 - log10f(pv)) / 2.0);
-        }
-        
-        fout      << chromonames[i] << "\t" 
-                  << *positerator << "\t" << *positerator << "\t"
-                  << ".\t"
-                  << narrowPeakScore << "\t" 
-                  << (scoresFw[k] > scoresRev[k] ? "+" : "-") << "\t" 
-                  << std::max(scoresFw[k], scoresRev[k]) << "\t" 
-                  << pv << "\t" << "-1\t-1" << std::endl;
-        positerator++;
-      }
-      tstop = (double)clock()/CLOCKS_PER_SEC;
-      std::cout << "Formatted out for " << tstop - tstart << " seconds" << std::endl; 
-      
-      positions_to_read_again.clear();
+      format_bed(fout, chromonames[i], positions_to_read_again, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
     }
     
     fin.close();
     remove(merged_files[i].c_str());
     
-    status = 75.0 + 25.0 * (double) i / (double) merged_files.size();
-    std::ofstream status_out((status_folder + status_filename).c_str());
-    status_out << "{\"percent done\": " << (int)status << ", \"result\": [\"\"], \"explain\": \"recomputing scores and p-values\"}";
-    status_out.close();    
+    write_status(75.0 + 25.0 * (double) i / (double) merged_files.size(), status_folder, status_filename, "recomputing scores and p-values", "");
   }
   fout.close();
   
-  std::ofstream status_out((status_folder + status_filename).c_str());
-  status_out << "{\"percent done\": 100, \"result\":" << "[\"http://bsf.at.ispras.ru/result-files/" << result_filename << "\"], \"explain\": \"task complete\"}";
-  status_out.close();    
+  write_status(100.0, status_folder, status_filename, "task complete", (std::string("http://bsf.at.ispras.ru/result-files/") + result_filename).c_str());
  
   return 0;
 }

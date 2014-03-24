@@ -1,0 +1,7 @@
+{
+ "p-value": 0.01,
+ "matrix": "/Users/al/Downloads/pwms/AHR_si.pat",
+ "memory": 5913,
+ "genome-len": 100000000,
+ "tests": ["get_words", "init_ahoc"]
+}
