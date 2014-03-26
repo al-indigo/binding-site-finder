@@ -8,7 +8,8 @@
 void init_ahoc(AhoCorasickPlus& atm, 
                Pwm& matrix, 
                size_t patterns_allowed, 
-               size_t& total_words);
+               size_t& total_words, 
+               optimization_type type = classic);
 
 void ahoc_search(size_t sequence_id, 
                  size_t part_id,

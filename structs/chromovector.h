@@ -26,7 +26,7 @@ public:
   void releasePart ( size_t sequence_number, size_t part_number);
   
   void getWordsAsPaths (size_t sequence_number, std::set<size_t>& positions, size_t length, std::vector <std::vector<char> >& result) { chromovector[sequence_number]->getWordsAsPaths(positions, length, result); };
-
+  void getWordAsPathTest (size_t sequence_number, size_t position, size_t length, std::vector<char>& result) { chromovector[sequence_number]->getWordAsPathTest(position, length, result); }
   
  ~ChromoVector ( );
 };

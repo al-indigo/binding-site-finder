@@ -122,9 +122,9 @@ int main(int argc, char** argv) {
   }
   
   jsonxx::Object task;
-  assert(task.parse(options));
+  task.parse(options);
   
-  size_t mem_allowed = task.get<jsonxx::Number>("memory");
+  size_t mem_allowed = 1024*1024*task.get<jsonxx::Number>("memory");
   std::string matrix_filename = task.get<jsonxx::String>("matrix");
   double p_value = task.get<jsonxx::Number>("p-value");
   std::string result_folder = task.get<jsonxx::String>("result-folder");

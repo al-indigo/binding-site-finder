@@ -12,7 +12,7 @@
 /* IMPORTANT: more block you use, faster the program works -- it needs to make less
  *            merges of results which take lot of time
  */
-#define READ_BLOCK_SIZE size_t(128*1024*1024LLU - INTERSECTION_SIZE)
+#define READ_BLOCK_SIZE size_t(96*1024*1024LLU - INTERSECTION_SIZE)
 
 
 #include <string>
@@ -28,6 +28,7 @@ class Chromo {
   std::vector<std::size_t> end_part;
   std::vector<std::size_t> length_part;
   char * sequence;
+  size_t current_part;
   
 public:
     Chromo (std::string _filename, std::string _description, std::size_t _start, std::size_t _end);
@@ -45,6 +46,8 @@ public:
     void releasePart (size_t part_number);
     
     void getWordsAsPaths (const std::set<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
+    void getWordAsPathTest (size_t position, size_t length, std::vector<char>& result);
+
     
    ~Chromo ();
 };

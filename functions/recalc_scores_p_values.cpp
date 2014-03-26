@@ -15,29 +15,24 @@ void recalc_scores_p_values(std::istream& fin,
                             std::vector<double>& scoresFw, 
                             std::vector<double>& scoresRev) {  
   size_t buf = 0;
-  for (int k = 0; k < mem_allowed * 1024 * 1024 / 8 && fin >> buf; k++) {
+  for (int k = 0; k < mem_allowed / 8 && fin >> buf; k++) {
     positions_to_read_again.insert(buf);
   }
   if (positions_to_read_again.empty()) {
     return;
   }
+  std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size(), std::vector<char>(matrix.getLength()));
 
-  std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size());
-
-  sequences.getWordsAsPaths(sequence_id, positions_to_read_again, matrix.getLength(), words_as_paths);
-
-  double tstart, tstop, ttime;
-  tstart = (double)clock()/CLOCKS_PER_SEC;
+  size_t counter = 0;
+  for (std::set<size_t>::iterator i = positions_to_read_again.begin(); i != positions_to_read_again.end(); ++i, counter++) {
+    std::vector<char> temp(matrix.getLength());
+    sequences.getWordAsPathTest(sequence_id, *i, matrix.getLength(), temp);
+    words_as_paths[counter] = temp;
+  }
 
   matrix.getScores(words_as_paths, scoresFw, scoresRev);
 
-  tstop = (double)clock()/CLOCKS_PER_SEC;
-  std::cout << "Got scores for " << tstop - tstart << " seconds" << std::endl; 
-
-  tstart = (double)clock()/CLOCKS_PER_SEC;
   pvaluesFw = matrix.getPValues(scoresFw);
   pvaluesRev = matrix.getPValues(scoresRev);
-  tstop = (double)clock()/CLOCKS_PER_SEC;
-  std::cout << "Got p-values for " << tstop - tstart << " seconds" << std::endl; 
 
 }

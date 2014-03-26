@@ -1,15 +1,9 @@
 #include "functions.h"
 
-void init_ahoc(AhoCorasickPlus& atm, Pwm& matrix, size_t patterns_allowed, size_t& total_words) {
+void init_ahoc(AhoCorasickPlus& atm, Pwm& matrix, size_t patterns_allowed, size_t& total_words, optimization_type type) {
     std::vector<std::vector<char> > patterns;
     
-    double tstart, tstop, ttime;
-    tstart = (double)clock()/CLOCKS_PER_SEC;
-    
-    patterns = matrix.getWords(patterns_allowed);
-    
-    tstop = (double)clock()/CLOCKS_PER_SEC;
-    std::cout << "Got words for " << tstop - tstart << " seconds" << std::endl; 
+    patterns = matrix.getWords(patterns_allowed, type);
     
     for (size_t i = 0; i < patterns.size(); i++)
     {

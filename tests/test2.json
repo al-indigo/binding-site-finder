@@ -1,0 +1,17 @@
+{
+ "p-value": 0.01,
+ "result-filename": "dev",
+ "matrix": "/Users/al/Downloads/pwms/AHR_si.pat",
+ "memory": 5913,
+ "tasks": [
+  {
+   "start": 0,
+   "end": 181748086,
+   "chromofile": "/Users/al/Downloads/genome/mm9/chr2.plain",
+   "chromoname": "chr2"
+  }
+ ],
+ "status-folder": "/Users/al/Programming/binding-site-finder/build/results/",
+ "status-filename": "dev.json",
+ "result-folder": "/Users/al/Programming/binding-site-finder/build/results/"
+}

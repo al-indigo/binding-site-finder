@@ -23,8 +23,9 @@ Pwm::Pwm(std::string pwmFilename, double p_value) {
     std::cout << "Wrong input: matrix file should have a name at first string" << std::endl;
     exit(-1);
   }
-
+#ifdef DDEBUG_PRINT
   std::cout << "Read matrix name: " << this->pwmName << std::endl;
+#endif
 
   while(ifs >> std::skipws >> dummy) {
     if (!std::isnan(dummy)) {
@@ -91,8 +92,12 @@ double Pwm::get_threshold_by_pvalue ( double pvalue ) {
 }
 
 
-std::vector<double> Pwm::getPValues(std::vector<double>& thresholds) {
-  return pvalues_by_thresholds(thresholds, threshold, optimisticScoresCeiledFw, pwmCeiled);
+std::vector<double> Pwm::getPValues(std::vector<double>& thresholds, optimization_type _type) {
+  if (_type == distance) {
+    return pvalues_by_thresholds2(thresholds, threshold, optimisticScoresCeiledFw, pwmCeiled);
+  } else {
+    return pvalues_by_thresholds(thresholds, threshold, optimisticScoresCeiledFw, pwmCeiled);
+  }
 }
 
 
