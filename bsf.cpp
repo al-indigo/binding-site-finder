@@ -78,7 +78,6 @@ int predict(size_t mem_allowed,
     
     write_status(60.0 + 15.0 * (double)i/(double)files_to_merge.size(), status_folder, status_filename, "merging files", "");
   }
-
   std::ofstream fout((result_folder + result_filename).c_str(), std::fstream::app);
   for (int i = 0; i < merged_files.size(); i++) {
     std::ifstream fin(merged_files[i].c_str());
@@ -99,7 +98,6 @@ int predict(size_t mem_allowed,
     write_status(75.0 + 25.0 * (double) i / (double) merged_files.size(), status_folder, status_filename, "recomputing scores and p-values", "");
   }
   fout.close();
-  
   write_status(100.0, status_folder, status_filename, "task complete", (std::string("http://bsf.at.ispras.ru/result-files/") + result_filename).c_str());
  
   return 0;

@@ -187,43 +187,40 @@ std::vector<double> pvalues_by_thresholds2(std::vector< double >& thresholds, do
   std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, (min_threshold)*DISCRETIZATION_VALUE);
   
   double volume = (double)vocabularyVolume(matrix);
-  std::vector<double> p_values, keys;
-  p_values.reserve(thresholds.size());
-  keys.reserve(thresholds.size());
   
-  std::vector<double> values, counts_partial_sums;
-  for (std::map<double,double>::reverse_iterator i = counts.rbegin(); i != counts.rend(); ++i) {
-    values.push_back((*i).second);
+  //NOTE: for p_values, values and keys full space allocated at creation. We can't do this for counts_partial_sums becaus later use back_inserter
+  std::vector<double> p_values(thresholds.size()), 
+                      values(thresholds.size()), 
+                      keys(thresholds.size()), 
+                      counts_partial_sums;
+                      
+  counts_partial_sums.reserve(thresholds.size());
+  
+  size_t aux_counter = 0;
+  for (std::map<double,double>::reverse_iterator i = counts.rbegin(); i != counts.rend(); ++i, aux_counter++) {
+    values[aux_counter] = ((*i).second);
   }
-  for (std::map<double,double>::iterator i = counts.begin(); i != counts.end(); ++i) {
-    keys.push_back((*i).first);
+  
+  aux_counter = 0;
+  for (std::map<double,double>::iterator i = counts.begin(); i != counts.end(); ++i, aux_counter++) {
+    keys[aux_counter] = ((*i).first);
   }
   
   std::partial_sum(values.begin(), values.end(), std::back_inserter(counts_partial_sums));
-  
-  std::map<double, double> cache;
-  
-  size_t counter = 0;
-  for (std::vector<double>::iterator i = thresholds.begin(); i != thresholds.end(); ++i) {
-    if (*i < cutoff) {
+
+  for (size_t i = 0; i < thresholds.size(); i++) {
+    if (thresholds[i] < cutoff) {
       p_values.push_back(1.0);
       continue;
     }
-    std::map<double, double>::iterator search = cache.find(*i);
-    if (search != cache.end()) {
-      p_values.push_back(search->second);
-      counter++;
-    } else {
-      double counts_sum = 0.0;
+    //NOTE: it seems that cache doesn't make any speedup at all: the same speed with it or without on the same tests so I have deleted it.
+    // It's reasonable: complexity of search in big std::map is higher than followin operations. 
+    double counts_sum = 0.0;
 
-      std::vector<double>::iterator lower = std::lower_bound(keys.begin(), keys.end(), *i * DISCRETIZATION_VALUE);
-      counts_sum = counts_partial_sums[std::distance(lower, keys.end()) - 1];
-
-      p_values.push_back(counts_sum/volume);
-      cache.insert(std::make_pair(*i, counts_sum/volume));
-    }
+    std::vector<double>::iterator lower = std::lower_bound(keys.begin(), keys.end(), thresholds[i] * DISCRETIZATION_VALUE);
+    counts_sum = counts_partial_sums[std::distance(lower, keys.end()) - 1];
+    p_values[i] = counts_sum/volume;
   }
-  std::cout << "In cache: " << counter << std::endl;
   return p_values;
 }
 

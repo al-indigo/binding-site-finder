@@ -55,7 +55,7 @@ public:
     std::vector<std::vector<char> >     getWords(unsigned int count, optimization_type _type = classic);
 
     bool                                hasMoreWords() { return lastPath.final; };
-    std::vector<double>                 getPValues(std::vector<double>& thresholds, optimization_type _type = classic);
+    std::vector<double>                 getPValues(std::vector<double>& thresholds, optimization_type _type = distance);
     
     void                                getScores(std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev, optimization_type _type = classic);
 

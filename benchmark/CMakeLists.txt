@@ -11,5 +11,8 @@ add_custom_command(TARGET copy PRE_BUILD                              # Adds a p
 add_dependencies(benchmark copy ahoc_CPP_LIB structs_LIB utils_CPP_LIB)
 
 
-
-target_link_libraries(benchmark ahoc_CPP_LIB structs_LIB utils_CPP_LIB functions_LIB  rt)
+IF(LINUX)
+target_link_libraries(benchmark ahoc_CPP_LIB structs_LIB utils_CPP_LIB functions_LIB rt)
+ELSEIF(APPLE)
+target_link_libraries(benchmark ahoc_CPP_LIB structs_LIB utils_CPP_LIB functions_LIB)
+ENDIF(LINUX)
