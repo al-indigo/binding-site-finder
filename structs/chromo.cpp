@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <limits>
 #include <assert.h>
+#include <cstring>
 
 #include "chromo.h"
 

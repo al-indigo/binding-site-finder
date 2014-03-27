@@ -12,4 +12,4 @@ add_dependencies(benchmark copy ahoc_CPP_LIB structs_LIB utils_CPP_LIB)
 
 
 
-target_link_libraries(benchmark ahoc_CPP_LIB structs_LIB utils_CPP_LIB functions_LIB)
+target_link_libraries(benchmark ahoc_CPP_LIB structs_LIB utils_CPP_LIB functions_LIB  rt)

@@ -4,6 +4,7 @@
 #include <limits>
 #include <cstdlib>
 #include <string.h>
+#include <stdint.h>
 
 typedef struct pwm_matrix {
   double * matrix;

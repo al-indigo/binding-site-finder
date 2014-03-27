@@ -1,17 +1,17 @@
 {
  "p-value": 0.01,
  "result-filename": "dev",
- "matrix": "/Users/al/Downloads/pwms/AHR_si.pat",
+ "matrix": "/home/al/Downloads/pwms/AHR_si.pat",
  "memory": 5913,
  "tasks": [
   {
    "start": 0,
-   "end": 181748086,
-   "chromofile": "/Users/al/Downloads/genome/mm9/chr2.plain",
+   "end": 243199372,
+   "chromofile": "/home/al/Downloads/genome/chr2_upper.plain",
    "chromoname": "chr2"
   }
  ],
- "status-folder": "/Users/al/Programming/binding-site-finder/build/results/",
+ "status-folder": "/home/al/Programming/binding-site-finder/build/results/",
  "status-filename": "dev.json",
- "result-folder": "/Users/al/Programming/binding-site-finder/build/results/"
+ "result-folder": "/home/al/Programming/binding-site-finder/build/results/"
 }

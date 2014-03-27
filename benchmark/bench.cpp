@@ -126,7 +126,7 @@ struct GlobalParameters {
       if (len == 0) {
         std::cout << "\tTest genome missing; generating random genome with length: " << genome_len << std::endl;
         std::string chromofile = get_working_path() + std::string("-chr_random.plain");
-        std::ofstream chromo(chromofile);
+        std::ofstream chromo(chromofile.c_str());
         static const char alphabet[] = "ACGT";
         for (size_t i=0; i < genome_len; i++) {
           chromo << alphabet[rand() % (sizeof(alphabet)-1)];

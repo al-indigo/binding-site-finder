@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include <stdint.h>
 
 #define NUM_COLS 4
 
