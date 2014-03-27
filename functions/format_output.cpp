@@ -7,12 +7,12 @@
 
 void format_bed(std::ostream& fout,
                 std::string& chromoname,
-                std::set<size_t>& positions_to_read_again,
+                std::vector<size_t>& positions_to_read_again,
                 std::vector<double>& pvaluesFw,
                 std::vector<double>& pvaluesRev,
                 std::vector<double>& scoresFw,
                 std::vector<double>& scoresRev) {
-  std::set<size_t>::iterator positerator = positions_to_read_again.begin()++;
+  std::vector<size_t>::iterator positerator = positions_to_read_again.begin()++;
 
   double tstart, tstop, ttime;
   tstart = (double)clock()/CLOCKS_PER_SEC;

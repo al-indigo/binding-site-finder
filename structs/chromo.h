@@ -45,7 +45,7 @@ public:
     size_t getPartLength (size_t part_number);
     void releasePart (size_t part_number);
     
-    void getWordsAsPaths (const std::set<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
+    void getWordsAsPaths (std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
     void getWordAsPathTest (size_t position, size_t length, std::vector<char>& result);
 
     

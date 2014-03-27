@@ -98,7 +98,7 @@ inline static void wordToPath (char * buffer, char * destination, size_t length)
 }
 
 
-void Chromo::getWordsAsPaths (const std::set<size_t>& positions, size_t length, std::vector <std::vector<char> >& result) {
+void Chromo::getWordsAsPaths (std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result) {
 //  for (std::vector<std::vector<char> >::iterator i = result.begin(); i != result.end(); ++i) {
 //    (*i).resize(length, -1);
 //  }
@@ -109,7 +109,7 @@ void Chromo::getWordsAsPaths (const std::set<size_t>& positions, size_t length, 
 
   char buffer[length];
   size_t counter = 0;
-  for (std::set<size_t>::iterator i = positions.begin(); i != positions.end(); ++i, counter++) {
+  for (std::vector<size_t>::iterator i = positions.begin(); i != positions.end(); ++i, counter++) {
     fin.seekg(*i);
     fin.read(buffer, length);
     wordToPath(buffer, &((result[counter])[0]), length);

@@ -84,7 +84,7 @@ int predict(size_t mem_allowed,
     std::ifstream fin(merged_files[i].c_str());
     fin >> std::setbase(16);
     while (fin) {
-      std::set<size_t> positions_to_read_again;
+      std::vector<size_t> positions_to_read_again;
       std::vector<double> scoresFw, scoresRev, pvaluesFw, pvaluesRev;
           
       recalc_scores_p_values(fin, positions_to_read_again, mem_allowed, matrix, sequences, i, pvaluesFw, pvaluesRev, scoresFw, scoresRev);

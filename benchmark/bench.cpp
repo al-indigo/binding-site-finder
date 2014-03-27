@@ -263,7 +263,7 @@ public:
     
     size_t buf = 0;
     for (int k = 0; k < global_params.mem_allowed / 8 && stream >> buf; k++) {
-      this->positions_to_read_again.insert(buf);
+      this->positions_to_read_again.push_back(buf);
     }
     if (positions_to_read_again.empty()) {
       std::cout << "ERROR!" << std::endl;
@@ -304,7 +304,7 @@ public:
   
   std::vector<double> pvaluesFw, pvaluesRev, scoresFw, scoresRev;
   std::stringstream stream;
-  std::set<size_t> positions_to_read_again;
+  std::vector<size_t> positions_to_read_again;
   Pwm* matrix;
   ChromoVector* sequences;
   std::vector<std::vector<char> > words_as_paths;
@@ -354,7 +354,7 @@ public:
   void read_old() {
     size_t buf = 0;
     for (int k = 0; k < global_params.mem_allowed / 8 && stream >> buf; k++) {
-      this->positions_to_read_again.insert(buf);
+      this->positions_to_read_again.push_back(buf);
     }
     if (positions_to_read_again.empty()) {
       std::cout << "ERROR!" << std::endl;
@@ -368,7 +368,7 @@ public:
   std::vector<char> temp;
   std::vector<double> pvaluesFw, pvaluesRev, scoresFw, scoresRev;
   std::stringstream stream;
-  std::set<size_t> positions_to_read_again;
+  std::vector<size_t> positions_to_read_again;
   Pwm* matrix;
   ChromoVector* sequences;
   std::vector<std::vector<char> > words_as_paths;

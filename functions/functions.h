@@ -29,7 +29,7 @@ void merge_files(int id,
 
 //NOTE: istream is here for purpose: we can use it with files and memory.
 void recalc_scores_p_values(std::istream& fin, 
-                            std::set<size_t>& positions_to_read_again, 
+                            std::vector<size_t>& positions_to_read_again, 
                             size_t mem_allowed, 
                             Pwm& matrix, 
                             ChromoVector& sequences, 
@@ -41,7 +41,7 @@ void recalc_scores_p_values(std::istream& fin,
 
 void format_bed(std::ostream& fout,
                 std::string& chromoname,
-                std::set<size_t>& positions_to_read_again,
+                std::vector<size_t>& positions_to_read_again,
                 std::vector<double>& pvaluesFw,
                 std::vector<double>& pvaluesRev,
                 std::vector<double>& scoresFw,
