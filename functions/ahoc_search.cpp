@@ -28,7 +28,7 @@ void ahoc_search(size_t sequence_id,
 
   AhoCorasickPlus::Match aMatch;
   size_t occurances = 0;
-  std::cout << "Results for " << sequences.getFilename(sequence_id) << " as " << sequences.getDescription(sequence_id) << " part #" << part_id << std::endl;
+  std::cout << "Results for " << sequences.getFilename(sequence_id) << " as " << sequences.getDescription(sequence_id) << " part #" << part_id << "\n";
 
   atm.search(seq, length, false);
   while (atm.findNext(aMatch))
@@ -48,7 +48,7 @@ void ahoc_search(size_t sequence_id,
     files_to_merge[sequence_id].push_back(tempfilename);
     
     for (std::vector<size_t>::iterator z = result_vector.begin(); z != result_vector.end(); ++z) {
-      fout << *z << std::endl;
+      fout << *z << "\n";
     }
     
     fout.close();

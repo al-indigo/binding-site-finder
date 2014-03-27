@@ -115,7 +115,6 @@ void Chromo::getWordsAsPaths (std::vector<size_t>& positions, size_t length, std
     wordToPath(buffer, &((result[counter])[0]), length);
   }
   fin.close();
-  std::cout << "Words as paths are in" << std::endl;
 }
 
 size_t Chromo::getNumberOfParts() {

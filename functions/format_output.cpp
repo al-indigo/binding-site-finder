@@ -18,6 +18,7 @@ void format_bed(std::ostream& fout,
   tstart = (double)clock()/CLOCKS_PER_SEC;
   for (int k = 0; k < positions_to_read_again.size() ; k++) {
     double pv = std::min(pvaluesFw[k], pvaluesRev[k]);
+
     int narrowPeakScore = 0;
     if (pv > 0.001) {
       narrowPeakScore = 100; 
@@ -34,7 +35,7 @@ void format_bed(std::ostream& fout,
               << narrowPeakScore << "\t" 
               << (scoresFw[k] > scoresRev[k] ? "+" : "-") << "\t" 
               << std::max(scoresFw[k], scoresRev[k]) << "\t" 
-              << pv << "\t" << "-1\t-1" << std::endl;
+              << pv << "\t" << "-1\t-1" << "\n";
     positerator++;
   }
   tstop = (double)clock()/CLOCKS_PER_SEC;
