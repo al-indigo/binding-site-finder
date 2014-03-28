@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <cstring>
+#include <iostream>
+#include <stdint.h>
 
 #define NUM_COLS 4
 
@@ -15,7 +17,7 @@ typedef struct pwm_path {
   bool final;
   pwm_path() { path = NULL; length = 0; final = false; }
  ~pwm_path() { delete[] path; }
-  void init (size_t _length){ path = new char[_length]; length = _length; memset(path, 0, sizeof(char) * length); }
+  void init (size_t _length){ path = new char[_length * (sizeof(uint32_t) + _length - 1)/sizeof(uint32_t) ]; length = _length; memset(path, 0, sizeof(char) * _length * (sizeof(uint32_t) + _length - 1)/sizeof(uint32_t) ); }
   
   /* NOTE: I'm using here vector instead of char[] to avoid leaks in future: it's simplier to maintain */   
   std::vector<char> getWord() {

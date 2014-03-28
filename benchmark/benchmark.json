@@ -1,0 +1,8 @@
+{
+ "p-value": 0.000000001,
+ "matrix": "/Users/al/Downloads/pwms/TAL1_f2.pat",
+ "memory": 5913,
+ "genome-len": 100000000,
+ "scores-to-test": 90000000,
+ "p-values-to-test": 10000,
+}
