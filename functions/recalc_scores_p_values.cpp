@@ -1,6 +1,7 @@
 #include <set>
 #include <iostream>
 #include <istream>
+#include <cstdio>
 #include "../structs/chromovector.h"
 #include "../structs/pwm.h"
 
