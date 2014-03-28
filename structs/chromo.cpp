@@ -9,7 +9,7 @@
 #include <limits>
 #include <assert.h>
 #include <cstring>
-
+#include <cstdio>
 #include "chromo.h"
 
 
@@ -49,12 +49,6 @@ std::string& Chromo::getDescription() {
 
 
 char* Chromo::getSeqPtr(size_t part_number) {
-  /*    sequence = new char[end-start+1];
-    std::ifstream fin(filename.c_str(), std::ifstream::in);
-    fin.seekg(start);
-    fin.read(sequence, end-start);
-    sequence[end-start] = '\0';
-    length = end - start; */
     if (part_number > this->getNumberOfParts() - 1) {
       throw std::invalid_argument("Incorrect part_number");
     }
@@ -64,14 +58,19 @@ char* Chromo::getSeqPtr(size_t part_number) {
       sequence = NULL;
     }
     sequence = new char[end_part[part_number] - start_part[part_number] + 1];
-    std::ifstream fin(filename.c_str(), std::ifstream::in);
-    fin.seekg(start_part[part_number]);
-    fin.read(sequence, end_part[part_number] - start_part[part_number]);
+//    std::ifstream fin(filename.c_str(), std::ifstream::in);
+    FILE * fin = fopen(filename.c_str(), "r");
+//    fin.seekg(start_part[part_number]);
+    fseek(fin, start_part[part_number], SEEK_SET);
+//    fin.read(sequence, end_part[part_number] - start_part[part_number]);
+    fread(sequence, sizeof(char), end_part[part_number] - start_part[part_number], fin);
     sequence[end_part[part_number] - start_part[part_number]] = '\0';
     current_part = part_number;
     
     return sequence;
 }
+
+
 
 //This returns absolute offset of given part in file.
 size_t Chromo::getPartOffset ( size_t part_number ) {

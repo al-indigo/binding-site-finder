@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <stdio.h>
+#include <cstdio>
 
 #include "../utils/prepare_filename.h"
 #include "../utils/mergesort_infile.h"
@@ -40,19 +40,23 @@ void ahoc_search(size_t sequence_id,
   std::cout << "Occurances found: " << occurances << std::endl;
   if (occurances > 0) {
     std::string tempfilename = prepare_filename(result_folder + result_filename, "bsf-part-", (sequence_id+1)*10000000 + part_id);
-    std::ofstream fout(tempfilename.c_str());
+/*    std::ofstream fout(tempfilename.c_str());
     char * fbuf = new char[FSTREAM_BUF_SIZE];
     fout.rdbuf()->pubsetbuf(fbuf, FSTREAM_BUF_SIZE);
-    fout << std::setbase(16);
+    fout << std::setbase(16); */
+    FILE * fout = fopen(tempfilename.c_str(), "a");
 
     files_to_merge[sequence_id].push_back(tempfilename);
     
     for (std::vector<size_t>::iterator z = result_vector.begin(); z != result_vector.end(); ++z) {
-      fout << *z << "\n";
+//      fout << *z << "\n";
+      fprintf(fout, "%lx\n", *z);
     }
+    fflush(fout);
+    fclose(fout);
     
-    fout.close();
-    delete [] fbuf;
+//    fout.close();
+//    delete [] fbuf;
   }
 
   sequences.releasePart(sequence_id, part_id);

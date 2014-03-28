@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <cstdio>
+#include <sstream>
 
 #include "ahoc/AhoCorasickPlus.h"
 #include "structs/pwm.h"
@@ -78,26 +79,33 @@ int predict(size_t mem_allowed,
     
     write_status(60.0 + 15.0 * (double)i/(double)files_to_merge.size(), status_folder, status_filename, "merging files", "");
   }
-  std::ofstream fout((result_folder + result_filename).c_str(), std::fstream::app);
+//  std::ofstream fout((result_folder + result_filename).c_str(), std::fstream::app);
+  FILE * fout = fopen((result_folder + result_filename).c_str(), "a");
   for (int i = 0; i < merged_files.size(); i++) {
-    std::ifstream fin(merged_files[i].c_str());
-    fin >> std::setbase(16);
-    while (fin) {
+//    std::ifstream fin(merged_files[i].c_str());
+//    fin >> std::setbase(16);
+    FILE * fin = fopen(merged_files[i].c_str(), "r");
+    while (!feof(fin)) {
       std::vector<size_t> positions_to_read_again;
       std::vector<double> scoresFw, scoresRev, pvaluesFw, pvaluesRev;
           
       recalc_scores_p_values(fin, positions_to_read_again, mem_allowed, matrix, sequences, i, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
       if (positions_to_read_again.size() == 0) continue;
-      
+     
       format_bed(fout, chromonames[i], positions_to_read_again, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
+      
     }
     
-    fin.close();
+//    fin.close();
+    fclose(fin);
     remove(merged_files[i].c_str());
     
     write_status(75.0 + 25.0 * (double) i / (double) merged_files.size(), status_folder, status_filename, "recomputing scores and p-values", "");
   }
-  fout.close();
+  fflush(fout);
+  fclose(fout);
+
+//  fout.close();
   write_status(100.0, status_folder, status_filename, "task complete", (std::string("http://bsf.at.ispras.ru/result-files/") + result_filename).c_str());
  
   return 0;
