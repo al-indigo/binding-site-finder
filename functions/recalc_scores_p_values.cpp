@@ -55,16 +55,23 @@ void recalc_scores_p_values(FILE * fin,
   if (positions_to_read_again.empty()) {
     return;
   }
-  std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size(), std::vector<char>(matrix.getLength()));
+/*  std::vector<std::vector<char> > words_as_paths(positions_to_read_again.size(), std::vector<char>(matrix.getLength()));
 
   size_t counter = 0;
   for (std::vector<size_t>::iterator i = positions_to_read_again.begin(); i != positions_to_read_again.end(); ++i, counter++) {
     std::vector<char> temp(matrix.getLength());
     sequences.getWordAsPathTest(sequence_id, *i, matrix.getLength(), temp);
     words_as_paths[counter] = temp;
-  }
+  } */
 
-  matrix.getScores(words_as_paths, scoresFw, scoresRev);
+//  matrix.getScores(words_as_paths, scoresFw, scoresRev);
+  std::pair<double, double> scores;
+  for (std::vector<size_t>::iterator i = positions_to_read_again.begin(); i != positions_to_read_again.end(); ++i) {
+    if (sequences.getWordScores(sequence_id, *i, matrix, scores)) {
+      scoresFw.push_back(scores.first);
+      scoresRev.push_back(scores.second);
+    }
+  }
 
   pvaluesFw = matrix.getPValues(scoresFw);
   pvaluesRev = matrix.getPValues(scoresRev);

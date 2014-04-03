@@ -1,12 +1,12 @@
 {
- "p-value": 0.0001,
+ "p-value": 0.001,
  "result-filename": "dev",
  "matrix": "/Users/al/Downloads/pwms/AHR_si.pat",
  "memory": 5913,
  "tasks": [
   {
    "start": 0,
-   "end": 201326335,
+   "end": 181748086,
    "chromofile": "/Users/al/Downloads/genome/mm9/chr2.plain",
    "chromoname": "chr2"
   }

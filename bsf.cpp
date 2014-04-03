@@ -31,7 +31,7 @@ int predict(size_t mem_allowed,
             std::vector<std::string> filenames, 
             std::vector<std::string> chromonames, 
             std::vector<size_t> starts, 
-            std::vector<size_t> ends) {
+            std::vector<size_t> ends, bool method) {
   
 //NOTE: results_path should exist (I'm ruling all the filenames stuff with python wrapper - it's easier)
   {
@@ -50,6 +50,41 @@ int predict(size_t mem_allowed,
   
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
 
+  if (method) {
+    std::cout << "Model length:\t" << matrix.getLength() << "\tp_value\t" << p_value << "\tinterval of search length\t" << sequences.getPartLength(0, 0) << "\tthreshold\t" << matrix.getThreshold() << "\n";
+    double tstart, tstop;
+    tstart = (double)clock()/CLOCKS_PER_SEC;
+    
+    for (size_t s_i = 0; s_i < sequences.size(); s_i++) {
+      for (size_t p_i = 0; p_i < sequences.getNumberOfParts(s_i); p_i++) {
+        size_t offset = sequences.getAbsoluteOffset(s_i, p_i);
+        std::vector<double> scoresFw, scoresRev;
+        std::vector<size_t> matched;
+        for (size_t i = 0; i < sequences.getPartLength(s_i, p_i) - matrix.getLength(); i++) {
+          std::pair<double, double> scores;
+          if (sequences.getWordScores(s_i, i + offset, matrix, scores)) {
+            scoresFw.push_back(scores.first);
+            scoresRev.push_back(scores.second);
+            matched.push_back(i + offset);
+          }
+          
+        }
+        std::vector<double> pvaluesFw(scoresFw.size()), pvaluesRev(scoresRev.size());
+        pvaluesFw = matrix.getPValues(scoresFw);
+        pvaluesRev = matrix.getPValues(scoresRev);
+        FILE * fout = fopen((result_folder + result_filename).c_str(), "a");
+        format_bed(fout, chromonames[s_i], matched, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
+        fflush(fout);
+        fclose(fout);
+      }
+    }
+    tstop = (double)clock()/CLOCKS_PER_SEC;
+    std::cout << "\tNaive method: " << tstop - tstart << "\n";
+  } else {
+  
+  double tstart, tstop;
+  tstart = (double)clock()/CLOCKS_PER_SEC;
+  
   AhoCorasickPlus atm;
   
   size_t total_words = 0;
@@ -107,7 +142,10 @@ int predict(size_t mem_allowed,
 
 //  fout.close();
   write_status(100.0, status_folder, status_filename, "task complete", (std::string("http://bsf.at.ispras.ru/result-files/") + result_filename).c_str());
- 
+  
+  tstop = (double)clock()/CLOCKS_PER_SEC;
+  std::cout << "\tAhoC method: " << tstop - tstart << "\n";
+  }
   return 0;
 }
 
@@ -154,6 +192,7 @@ int main(int argc, char** argv) {
     starts.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("start"));
     ends.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("end"));
   }
-  
-  return predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends);
+//  predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends, true);
+  predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends, false);
+  return 0;
 }

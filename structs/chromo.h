@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include "pwm.h"
 
 class Chromo {
   std::string filename;
@@ -47,7 +48,7 @@ public:
     
     void getWordsAsPaths (std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
     void getWordAsPathTest (size_t position, size_t length, std::vector<char>& result);
-
+    bool getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores);
     
    ~Chromo ();
 };

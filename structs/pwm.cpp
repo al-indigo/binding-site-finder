@@ -167,7 +167,7 @@ std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
     }
   }
 //#ifdef DDEBUG_PRINT
-  std::cout << "Internal check: #patterns fit: " << words.size() << " fw: " << fw_fits << " rev: " << rev_fits << std::endl;
+//  std::cout << "Internal check: #patterns fit: " << words.size() << " fw: " << fw_fits << " rev: " << rev_fits << std::endl;
 //#endif
   return words;
 }
@@ -278,6 +278,20 @@ void Pwm::getScores (std::vector< std::vector< char > >& words, std::vector<doub
     case four_letter:           return getScores4letter(words, scoresFw, scoresRev);
     default:                    std::cerr << "Smth really wrong: no optimization type at all" << std::endl; exit(-11);
   }
+}
+
+bool Pwm::getScorePair (char * word, std::pair<double, double>& scores) {
+    double fwScore = 0.0;
+    double revScore = 0.0;
+    
+    for (int k = 0; k < this->getLength(); k++) {
+      fwScore += pwmFw(k, word[k]);
+      revScore += pwmRev(k, word[k]);
+    }
+    scores.first = fwScore;
+    scores.second = revScore;
+    
+    return (fwScore > threshold || revScore > threshold)? true: false;
 }
 
 

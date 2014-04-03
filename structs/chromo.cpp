@@ -12,7 +12,6 @@
 #include <cstdio>
 #include "chromo.h"
 
-
 Chromo::Chromo (std::string _filename, std::string _description, size_t _start, size_t _end): 
   filename(_filename), 
   description(_description),
@@ -34,9 +33,9 @@ Chromo::Chromo (std::string _filename, std::string _description, size_t _start, 
     end_part.push_back(std::min(end, start + READ_BLOCK_SIZE*(i+1)));
     length_part.push_back(end_part[i] - start_part[i]);
   }
-  for (size_t i=0; i < (end - start)/READ_BLOCK_SIZE + 1; i++) {
+/*  for (size_t i=0; i < (end - start)/READ_BLOCK_SIZE + 1; i++) {
     std::cout << "Parts: " <<start_part[i] << "   " << end_part[i] << "    " << length_part[i] << std::endl;
-  }
+  }*/
 }
 
 std::string& Chromo::getFilename() {
@@ -80,7 +79,7 @@ size_t Chromo::getPartOffset ( size_t part_number ) {
     return start_part[part_number];
 }
 
-inline static void wordToPath (char * buffer, char * destination, size_t length) {
+inline static bool wordToPath (char * buffer, char * destination, size_t length) {
   for (size_t i = 0; i < length; i++) {
     if (buffer[i] == 'A') {
         destination[i] = 0;
@@ -91,9 +90,10 @@ inline static void wordToPath (char * buffer, char * destination, size_t length)
     } else if (buffer[i] == 'T') {
         destination[i] = 3;
     } else {
-      assert(true);
+      return false; //NOTE: in most cases that means that we are at "N" letter.
     }
   }
+  return true;
 }
 
 
@@ -160,16 +160,38 @@ void Chromo::getWordAsPathTest (size_t position, size_t length, std::vector<char
  
 }
 
-// size_t Chromo::getFullSequenceAsPaths (size_t stop_point, size_t length, std::vector <std::vector<char> >& result) {
-//   sequence = getSeqPtr(part_number); // I know we may re-read this part accidentally, but it's much more stable way.
-//   size_t cur_len = getPartLength(part_number);
-//   
-//   
-//   
-//   
-// }
+bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores) {
+  //guess part, where word is located
+  size_t part_no = 0;
+  if (position >= end_part[getNumberOfParts()-1] - matrix.getLength()) {
+    std::cerr << "This should never happen! Bounds violation" << std::endl;
+    exit(-1);
+  }
+  
+  for (size_t i = 0; i < end_part.size(); i++) {
+    if (position < end_part[i] - matrix.getLength()) {
+      part_no = i;
+      break;
+    }
+  }
+  if (current_part != part_no) {
+    sequence = getSeqPtr(part_no);
+  }
 
-
+  size_t read_start = position - getPartOffset(current_part);
+//  std::cout << read_start << "\t"  << length << std::endl;
+  char buffer[matrix.getLength()];
+//  memcpy(buffer, sequence + read_start, length); //TODO: Check if need to copy for real.
+  if(!wordToPath(sequence + read_start, buffer, matrix.getLength())) {
+    return false;
+  }
+  
+  if (position == 172481330) {
+              std::cout << "I'm in:\t" <<  position << std::endl;
+  }
+  
+  return matrix.getScorePair(buffer, scores);
+}
 
 
 Chromo::~Chromo () {
