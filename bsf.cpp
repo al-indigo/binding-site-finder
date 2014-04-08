@@ -79,7 +79,7 @@ int predict(size_t mem_allowed,
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
 
   if (method == naive) {
-    std::cout << "Model length:\t" << matrix.getLength() << "\tp_value\t" << p_value << "\tinterval of search length\t" << sequences.getPartLength(0, 0) << "\tthreshold\t" << matrix.getThreshold() << "\t" << matrix.getNumberOfWords() << "\t" << CALIBRATION_VALUE(total_length) << "\n";
+//    std::cout << "Model length:\t" << matrix.getLength() << "\tp_value\t" << p_value << "\tinterval of search length\t" << sequences.getPartLength(0, 0) << "\tthreshold\t" << matrix.getThreshold() << "\t" << matrix.getNumberOfWords() << "\t" << CALIBRATION_VALUE(total_length) << "\n";
     double tstart, tstop;
     tstart = (double)clock()/CLOCKS_PER_SEC;
     
@@ -104,10 +104,10 @@ int predict(size_t mem_allowed,
         format_bed(fout, chromonames[s_i], matched, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
         fflush(fout);
         fclose(fout);
+        write_status(100.0 * (((double)(s_i + 1) * (p_i + 1)) / ((double) sequences.size() * sequences.getNumberOfParts(s_i))), status_folder, status_filename, "searching (naive)", "" );
       }
     }
-    tstop = (double)clock()/CLOCKS_PER_SEC;
-    std::cout << "\tNaive method: " << tstop - tstart << "\n";
+    write_status(100.0, status_folder, status_filename, "task complete", (std::string("http://bsf.at.ispras.ru/result-files/") + result_filename).c_str());
   } else {
   
   double tstart, tstop;
@@ -169,7 +169,7 @@ int predict(size_t mem_allowed,
   write_status(100.0, status_folder, status_filename, "task complete", (std::string("http://bsf.at.ispras.ru/result-files/") + result_filename).c_str());
   
   tstop = (double)clock()/CLOCKS_PER_SEC;
-  std::cout << "\tAhoC method: " << tstop - tstart << "\n";
+//  std::cout << "\tAhoC method: " << tstop - tstart << "\n";
   }
   return 0;
 }
