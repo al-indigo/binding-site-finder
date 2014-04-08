@@ -82,14 +82,18 @@ typedef struct pwm_path {
       } else {
         /* we have finished */
         if (i == 0 && path[i] == NUM_COLS - 1) {
-          memset(path, NUM_COLS - 1, sizeof(char) * length);
-          final = true;
+          setFinal();
           return;
         }
         path[i] = 0;
         continue;
       }
     }
+  }
+  
+  void setFinal() {
+    memset(path, NUM_COLS - 1, sizeof(char) * length);
+    final = true;
   }
 
 } pwmPath;

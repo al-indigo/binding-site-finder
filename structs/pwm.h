@@ -19,6 +19,8 @@ class Pwm {
   pwmMatrix pwmCeiled;
   
   double threshold;
+  size_t words_to_find;
+  size_t words_found;
   
   // We need this scores to understand if current path could contain interesting values
   double * optimisticScoresFw;
@@ -54,12 +56,15 @@ public:
     double *                            InitScoresAheadOptimistic(pwmMatrix & pwm);
     std::vector<std::vector<char> >     getWords(unsigned int count, optimization_type _type = classic);
 
-    bool                                hasMoreWords() { return lastPath.final; };
+    bool                                hasMoreWords() { return !lastPath.final; };
     std::vector<double>                 getPValues(std::vector<double>& thresholds, optimization_type _type = distance);
     
     void                                getScores(std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev, optimization_type _type = classic);
     
     const double                        getThreshold() {return this->threshold;}
+    const size_t                        getNumberOfWords() {return this->words_to_find; };
+    const size_t                        getNumberOfWordsFound() {return this->words_found; };
+    const unsigned int                  getNumberOfWordLeft() {return this->words_to_find - this->words_found; };
     bool                                getScorePair (char * word, std::pair<double, double>& scores);
 
 

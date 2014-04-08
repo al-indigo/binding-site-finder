@@ -11,7 +11,7 @@
 
 //#define DDEBUG_PRINT
 
-Pwm::Pwm(std::string pwmFilename, double p_value) {
+Pwm::Pwm(std::string pwmFilename, double p_value): words_found(0) {
   std::ifstream ifs(pwmFilename.c_str());
   std::string tempStr;
   size_t count = 0;
@@ -78,6 +78,7 @@ Pwm::Pwm(std::string pwmFilename, double p_value) {
   optimisticScoresCeiledFw = InitScoresAheadOptimistic(pwmCeiled);
   
   threshold = threshold_by_pvalue(p_value, optimisticScoresCeiledFw, pwmCeiled);
+  words_to_find = (size_t) (floor(p_value * pow(4, getLength())) + 0.01);
   
   initPrecalcMap(precalcmapFw4letter, pwmFw);
   initPrecalcMap(precalcmapRev4letter, pwmRev);
@@ -133,6 +134,8 @@ std::vector<std::vector<char> > Pwm::getWords(unsigned int count, optimization_t
 std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
   
   std::vector<std::vector<char> > words;
+  words.resize(std::min(count, this->getNumberOfWordLeft()), std::vector<char>(this->getLength()));
+  
 //  words.reserve(count * sizeof(std::string::value_type) * lastPath.length );
   /* wordcount is not a regular counter: it follows fit words, not number of iterations */
   
@@ -158,8 +161,11 @@ std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
     if (needBreak) continue;
 
     if (fwScore >= threshold || revScore >= threshold) {
-      words.push_back(lastPath.getWord());
+//      words.push_back(lastPath.getWord());
+      words[wordcount] = lastPath.getWord();
       wordcount++;
+      words_found++;
+      if (words_found >= words_to_find) lastPath.setFinal();
 #ifdef DDEBUG_PRINT
       std::cout << "Word fits: " << lastPath.getWord() << " with score: " << (fwScore > threshold ? fwScore : revScore) << std::endl;
 #endif

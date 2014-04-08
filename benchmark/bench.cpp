@@ -165,7 +165,7 @@ public:
       return;
     }
 
-    while (!matrix->hasMoreWords()) {
+    while (matrix->hasMoreWords()) {
       (matrix->getWords(global_params.patterns_allowed, type)).size();
     }
     

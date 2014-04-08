@@ -66,6 +66,7 @@ char* Chromo::getSeqPtr(size_t part_number) {
     sequence[end_part[part_number] - start_part[part_number]] = '\0';
     current_part = part_number;
     
+    fclose(fin);
     return sequence;
 }
 
@@ -184,10 +185,6 @@ bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, doub
 //  memcpy(buffer, sequence + read_start, length); //TODO: Check if need to copy for real.
   if(!wordToPath(sequence + read_start, buffer, matrix.getLength())) {
     return false;
-  }
-  
-  if (position == 172481330) {
-              std::cout << "I'm in:\t" <<  position << std::endl;
   }
   
   return matrix.getScorePair(buffer, scores);

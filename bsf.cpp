@@ -21,9 +21,23 @@
 #include "utils/jsonxx.h"
 #include "functions/functions.h"
 
+enum methods {naive, ahoc};
+
+/* IMPORTANT NOTE: 214600 + 0.0006868 is an experimental value for out I/O system in production. In your situation it may differ (a lot!) especially if you use SSD.
+ * How to measure it:
+ *  1) choose a model (with size 13 is the optimal one because nothing else iterefers the results (smaller give more results, larger take too much time for matrix traversal)
+ *  2) measure time for running this model with p-values 0.00001 up to 0.001 with both methods, remember also number of words that you are looking for (it's p-value*voc_volume)
+ *  3) make a plot for dependency time/number of words. 
+ *  4) fit a trace for convinience -- it linear for both cases
+ *  5) intersection point is the value where algorithms work the same time
+ *  6) make steps 2-5 for another chromosome with different size (if you choose chromosomes with size difference > 2, it would be better. Also try to choose chromos with size > 96MB (it's buffer by default))
+ *  7) fit a trace for this two points by (number of words to find/intersection point).
+ *  8) coefficients for this linear are your calibration value. */
+#define CALIBRATION_VALUE(total_length) 214600 + 0.0006868 * total_length
+
 int predict(size_t mem_allowed,
             std::string matrix_filename, 
-            double p_value, 
+            const double p_value, 
             std::string result_folder,
             std::string result_filename,
             std::string status_folder,
@@ -31,7 +45,7 @@ int predict(size_t mem_allowed,
             std::vector<std::string> filenames, 
             std::vector<std::string> chromonames, 
             std::vector<size_t> starts, 
-            std::vector<size_t> ends, bool method) {
+            std::vector<size_t> ends) {
   
 //NOTE: results_path should exist (I'm ruling all the filenames stuff with python wrapper - it's easier)
   {
@@ -40,6 +54,20 @@ int predict(size_t mem_allowed,
   }
  
   Pwm matrix(matrix_filename.c_str(), p_value);
+  
+  
+  size_t total_length = 0;
+  for (size_t i = 0; i < starts.size(); i++) {
+    total_length += ends[i] - starts[i];
+  }
+  
+  methods method;
+
+  if (matrix.getLength() > 19 || matrix.getNumberOfWords() > CALIBRATION_VALUE(total_length)) {
+    method = naive;
+  } else {
+    method = ahoc;
+  }
  
   // This is counted in experimental way: it's clear that consumption depends on length, but the coefficient
   // is just experimental for 5 matrices. Real consumption is always less than here (aho-corasick is quite tricky).
@@ -50,8 +78,8 @@ int predict(size_t mem_allowed,
   
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
 
-  if (method) {
-    std::cout << "Model length:\t" << matrix.getLength() << "\tp_value\t" << p_value << "\tinterval of search length\t" << sequences.getPartLength(0, 0) << "\tthreshold\t" << matrix.getThreshold() << "\n";
+  if (method == naive) {
+    std::cout << "Model length:\t" << matrix.getLength() << "\tp_value\t" << p_value << "\tinterval of search length\t" << sequences.getPartLength(0, 0) << "\tthreshold\t" << matrix.getThreshold() << "\t" << matrix.getNumberOfWords() << "\t" << CALIBRATION_VALUE(total_length) << "\n";
     double tstart, tstop;
     tstart = (double)clock()/CLOCKS_PER_SEC;
     
@@ -85,13 +113,10 @@ int predict(size_t mem_allowed,
   double tstart, tstop;
   tstart = (double)clock()/CLOCKS_PER_SEC;
   
-  AhoCorasickPlus atm;
-  
   size_t total_words = 0;
-  double voc_volume = (double)(matrix.getLength()^4) * p_value;
   double status = 0.0;
   
-  while (!matrix.hasMoreWords()) {
+  while (matrix.hasMoreWords()) {
     AhoCorasickPlus atm;
     {
       init_ahoc(atm, matrix, patterns_allowed, total_words);
@@ -102,11 +127,11 @@ int predict(size_t mem_allowed,
     for (size_t s_i = 0; s_i < sequences.size(); s_i++) {
       for (size_t p_i = 0; p_i < sequences.getNumberOfParts(s_i); p_i++) {
         ahoc_search(s_i, p_i, atm, matrix, sequences, result_folder, result_filename, total_words, files_to_merge);
-        write_status(60 * (double)total_words / voc_volume, status_folder, status_filename, "searching", "");
+        write_status(60.0 * ((double)(matrix.getNumberOfWordsFound() * (s_i + 1) * (p_i + 1)) / (double)(matrix.getNumberOfWords() * sequences.size() * sequences.getNumberOfParts(s_i))), status_folder, status_filename, "searching", "");
       }
     }
   }
-  
+ 
   std::vector<std::string> merged_files;
   
   for (int i = 0; i < files_to_merge.size(); i++) {
@@ -150,6 +175,11 @@ int predict(size_t mem_allowed,
 }
 
 
+double getThres(std::string matrix_filename, double p_value) {
+  Pwm matrix(matrix_filename, p_value);
+  return matrix.getThreshold();
+}
+
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -192,7 +222,8 @@ int main(int argc, char** argv) {
     starts.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("start"));
     ends.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("end"));
   }
-//  predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends, true);
-  predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends, false);
+  
+  predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends);
+
   return 0;
 }
