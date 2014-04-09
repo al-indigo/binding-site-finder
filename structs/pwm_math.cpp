@@ -139,13 +139,12 @@ double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatri
   return threshold;
 }
 
-std::vector<double> pvalues_by_thresholds(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix) {
+void pvalues_by_thresholds(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values) {
 //  double min_threshold = *std::min_element(thresholds.begin(), thresholds.end());
   double min_threshold = cutoff;
   std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, (min_threshold)*DISCRETIZATION_VALUE);
   
   double volume = (double)vocabularyVolume(matrix);
-  std::vector<double> p_values;
   p_values.reserve(thresholds.size());
   
   std::vector<double> values, counts_partial_sums;
@@ -178,19 +177,18 @@ std::vector<double> pvalues_by_thresholds(std::vector< double >& thresholds, dou
     }
   }
   std::cout << "In cache: " << counter << std::endl;
-  return p_values;
+  return;
 }
 
 
-std::vector<double> pvalues_by_thresholds2(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix) {
+void pvalues_by_thresholds2(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values) {
   double min_threshold = cutoff;
   std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, (min_threshold)*DISCRETIZATION_VALUE);
   
   double volume = (double)vocabularyVolume(matrix);
   
   //NOTE: for p_values, values and keys full space allocated at creation. We can't do this for counts_partial_sums becaus later use back_inserter
-  std::vector<double> p_values(thresholds.size()), 
-                      values(counts.size()), 
+  std::vector<double> values(counts.size()), 
                       keys(counts.size()), 
                       counts_partial_sums;
   p_values.resize(thresholds.size());
@@ -230,8 +228,7 @@ std::vector<double> pvalues_by_thresholds2(std::vector< double >& thresholds, do
     p_values[i] = counts_sum/volume;
 
   }
-  //UOIOIUOIUOIUOUIOUIOUIOIU
-  return p_values;
+  return;
 }
 
 

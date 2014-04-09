@@ -80,6 +80,7 @@ size_t Chromo::getPartOffset ( size_t part_number ) {
     return start_part[part_number];
 }
 
+
 inline static bool wordToPath (char * buffer, char * destination, size_t length) {
   for (size_t i = 0; i < length; i++) {
     if (buffer[i] == 'A') {

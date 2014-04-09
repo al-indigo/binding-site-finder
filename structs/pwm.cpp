@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+#include <functional>
 
 #include "pwm.h"
 
@@ -93,11 +94,11 @@ double Pwm::get_threshold_by_pvalue ( double pvalue ) {
 }
 
 
-std::vector<double> Pwm::getPValues(std::vector<double>& thresholds, optimization_type _type) {
+std::thread Pwm::getPValues(std::vector<double>& thresholds, std::vector<double>& p_values, optimization_type _type) {
   if (_type == distance) {
-    return pvalues_by_thresholds2(thresholds, threshold, optimisticScoresCeiledFw, pwmCeiled);
+    return std::thread(pvalues_by_thresholds2, std::ref(thresholds), std::ref(threshold), std::ref(optimisticScoresCeiledFw), std::ref(pwmCeiled), std::ref(p_values));
   } else {
-    return pvalues_by_thresholds(thresholds, threshold, optimisticScoresCeiledFw, pwmCeiled);
+    return std::thread(pvalues_by_thresholds, std::ref(thresholds), std::ref(threshold), std::ref(optimisticScoresCeiledFw), std::ref(pwmCeiled), std::ref(p_values));
   }
 }
 

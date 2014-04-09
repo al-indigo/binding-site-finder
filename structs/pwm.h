@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 #include <stdint.h>
+#include <thread>
 
 enum optimization_type {classic, two_letter, four_letter, distance};
 
@@ -57,7 +58,7 @@ public:
     std::vector<std::vector<char> >     getWords(unsigned int count, optimization_type _type = classic);
 
     bool                                hasMoreWords() { return !lastPath.final; };
-    std::vector<double>                 getPValues(std::vector<double>& thresholds, optimization_type _type = distance);
+    std::thread                         getPValues(std::vector<double>& thresholds, std::vector<double>& p_values, optimization_type _type = distance);
     
     void                                getScores(std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev, optimization_type _type = classic);
     

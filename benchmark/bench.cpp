@@ -415,8 +415,10 @@ public:
   }
   
   void pvalues(optimization_type type) {
-    pvaluesFw = matrix->getPValues(scoresFw, type);
-    pvaluesRev = matrix->getPValues(scoresRev, type);
+      std::thread fw_thread = matrix->getPValues(scoresFw, pvaluesFw);
+      fw_thread.join();
+      std::thread rev_thread = matrix->getPValues(scoresRev, pvaluesRev);
+      rev_thread.join();
   }
   
   

@@ -12,6 +12,8 @@
 #include <math.h>
 #include <cstdio>
 #include <sstream>
+#include <thread>
+#include <functional>
 
 #include "ahoc/AhoCorasickPlus.h"
 #include "structs/pwm.h"
@@ -98,8 +100,13 @@ int predict(size_t mem_allowed,
           
         }
         std::vector<double> pvaluesFw(scoresFw.size()), pvaluesRev(scoresRev.size());
-        pvaluesFw = matrix.getPValues(scoresFw);
-        pvaluesRev = matrix.getPValues(scoresRev);
+        
+        std::thread fw_thread = matrix.getPValues(scoresFw, pvaluesFw);
+        
+//        matrix.getPValues(scoresFw, pvaluesFw);
+        std::thread rev_thread = matrix.getPValues(scoresRev, pvaluesRev);
+        fw_thread.join();
+        rev_thread.join();
         FILE * fout = fopen((result_folder + result_filename).c_str(), "a");
         format_bed(fout, chromonames[s_i], matched, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
         fflush(fout);
@@ -114,7 +121,6 @@ int predict(size_t mem_allowed,
   tstart = (double)clock()/CLOCKS_PER_SEC;
   
   size_t total_words = 0;
-  double status = 0.0;
   
   while (matrix.hasMoreWords()) {
     AhoCorasickPlus atm;
@@ -222,6 +228,9 @@ int main(int argc, char** argv) {
     starts.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("start"));
     ends.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("end"));
   }
+  
+  std::cout << std::setbase(10);
+  std::cout << (int)'A' << "\n" << (int)'C' << "\n" << (int)'G' << "\n" << (int)'T' << "\n" << (int)'N' << "\n";
   
   predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends);
 

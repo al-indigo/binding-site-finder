@@ -2,8 +2,10 @@
 #include <iostream>
 #include <istream>
 #include <cstdio>
+#include <thread>
 #include "../structs/chromovector.h"
 #include "../structs/pwm.h"
+
 
 void recalc_scores_p_values(std::istream& fin, 
                             std::vector<size_t>& positions_to_read_again, 
@@ -33,8 +35,10 @@ void recalc_scores_p_values(std::istream& fin,
 
   matrix.getScores(words_as_paths, scoresFw, scoresRev);
 
-  pvaluesFw = matrix.getPValues(scoresFw);
-  pvaluesRev = matrix.getPValues(scoresRev);
+  std::thread fw_thread = matrix.getPValues(scoresFw, pvaluesFw);
+  std::thread rev_thread = matrix.getPValues(scoresRev, pvaluesRev);
+  fw_thread.join();
+  rev_thread.join();
 
 }
 
@@ -73,7 +77,9 @@ void recalc_scores_p_values(FILE * fin,
     }
   }
 
-  pvaluesFw = matrix.getPValues(scoresFw);
-  pvaluesRev = matrix.getPValues(scoresRev);
+  std::thread fw_thread = matrix.getPValues(scoresFw, pvaluesFw);
+  std::thread rev_thread = matrix.getPValues(scoresRev, pvaluesRev);
+  fw_thread.join();
+  rev_thread.join();
 
 }
