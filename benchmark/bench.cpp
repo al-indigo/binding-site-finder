@@ -216,7 +216,7 @@ public:
     starts.push_back(0);
     ends.push_back(global_params.genome_len-1);
     
-    sequences = new ChromoVector(filenames, chromonames, starts, ends);
+    sequences = new ChromoVector(filenames, chromonames, starts, ends, this->matrix->getLength());
     total_words=0;
     files_to_merge = new std::vector<std::vector<std::string> >;
   }
@@ -256,7 +256,7 @@ public:
     starts.push_back(0);
     ends.push_back(global_params.genome_len-1);
     
-    sequences = new ChromoVector(filenames, chromonames, starts, ends);
+    sequences = new ChromoVector(filenames, chromonames, starts, ends, this->matrix->getLength());
     for (size_t i = 0; i < global_params.scores_to_test - this->matrix->getLength() -1 ; i++) {
       stream << i << std::endl;
     }
@@ -284,11 +284,6 @@ public:
     delete matrix;
   }
   
-  void recalc_score(optimization_type type) {
-    std::cout << hayai::Console::TextCyan << "Calcucating " << positions_to_read_again.size() << " scores, word length is " << matrix->getLength() << hayai::Console::TextDefault << std::endl;
-    this->matrix->getScores(this->words_as_paths, scoresFw, scoresRev, type);
-  }
-  
   void recalc_full() {
      recalc_scores_p_values(this->stream, 
                             this->positions_to_read_again, 
@@ -305,127 +300,6 @@ public:
   std::vector<double> pvaluesFw, pvaluesRev, scoresFw, scoresRev;
   std::stringstream stream;
   std::vector<size_t> positions_to_read_again;
-  Pwm* matrix;
-  ChromoVector* sequences;
-  std::vector<std::vector<char> > words_as_paths;
-};
-
-class ReadWords : public hayai::Fixture {
-public:
-  virtual void SetUp() {
-    this->matrix = new Pwm(global_params.matrix_filename, global_params.p_value);
-    
-    std::vector<string> filenames, chromonames;
-    std::vector<size_t> starts, ends;
-    filenames.push_back(get_working_path() + std::string("-chr_random.plain"));
-    chromonames.push_back(std::string("bench_chromo"));
-    starts.push_back(0);
-    ends.push_back(global_params.genome_len-1);
-    
-    sequences = new ChromoVector(filenames, chromonames, starts, ends);
-    for (size_t i = 0; i < global_params.scores_to_test - this->matrix->getLength() -1 ; i++) {
-      stream << i << std::endl;
-    }
-
-  }
-  
-  virtual void TearDown() {
-    words_as_paths.clear();
-    this->positions_to_read_again.clear();
-    this->pvaluesFw.clear();
-    this->pvaluesRev.clear();
-    this->scoresFw.clear();
-    this->scoresRev.clear();
-    delete sequences;
-    delete matrix;
-  }
-  
-  void read_new() {
-    size_t buf = 0;
-    words_as_paths.resize(global_params.scores_to_test - this->matrix->getLength(), std::vector<char>(this->matrix->getLength()) );
-    for (int k = 0; k < global_params.mem_allowed / 8 && stream >> buf; k++) {
-      this->sequences->getWordAsPathTest(0, buf, this->matrix->getLength(), temp);
-      this->words_as_paths.push_back(temp);
-    }
-    
-    this->matrix->getScores(this->words_as_paths, scoresFw, scoresRev, classic);
-  }
-  
-  void read_old() {
-    size_t buf = 0;
-    for (int k = 0; k < global_params.mem_allowed / 8 && stream >> buf; k++) {
-      this->positions_to_read_again.push_back(buf);
-    }
-    if (positions_to_read_again.empty()) {
-      std::cout << "ERROR!" << std::endl;
-    }
-    
-    words_as_paths.resize(global_params.scores_to_test - this->matrix->getLength(), std::vector<char>(this->matrix->getLength()) );
-    this->sequences->getWordsAsPaths(0, positions_to_read_again, this->matrix->getLength(), words_as_paths);
-    this->matrix->getScores(this->words_as_paths, scoresFw, scoresRev, classic);
-  }
-  
-  std::vector<char> temp;
-  std::vector<double> pvaluesFw, pvaluesRev, scoresFw, scoresRev;
-  std::stringstream stream;
-  std::vector<size_t> positions_to_read_again;
-  Pwm* matrix;
-  ChromoVector* sequences;
-  std::vector<std::vector<char> > words_as_paths;
-};
-
-
-class CalcPvalues : public hayai::Fixture {
-public:
-  virtual void SetUp() {
-    this->matrix = new Pwm(global_params.matrix_filename, global_params.p_value);
-    
-    std::vector<string> filenames, chromonames;
-    std::vector<size_t> starts, ends;
-    filenames.push_back(get_working_path() + std::string("-chr_random.plain"));
-    chromonames.push_back(std::string("bench_chromo"));
-    starts.push_back(0);
-    ends.push_back(global_params.genome_len-1);
-    
-    sequences = new ChromoVector(filenames, chromonames, starts, ends);
-    for (size_t i = 0; i < global_params.p_values_to_test ; i++) {
-      stream << i << std::endl;
-    }
-    
-    size_t buf = 0;
-    words_as_paths.resize(global_params.p_values_to_test, std::vector<char>(this->matrix->getLength()) );
-    for (int k = 0; k < global_params.mem_allowed / 8 && stream >> buf; k++) {
-      this->sequences->getWordAsPathTest(0, buf, this->matrix->getLength(), temp);
-      this->words_as_paths.push_back(temp);
-    }
-    
-    this->matrix->getScores(this->words_as_paths, scoresFw, scoresRev, classic);
-
-  }
-  
-  virtual void TearDown() {
-    words_as_paths.clear();
-    this->positions_to_read_again.clear();
-    this->pvaluesFw.clear();
-    this->pvaluesRev.clear();
-    this->scoresFw.clear();
-    this->scoresRev.clear();
-    delete sequences;
-    delete matrix;
-  }
-  
-  void pvalues(optimization_type type) {
-      std::thread fw_thread = matrix->getPValues(scoresFw, pvaluesFw);
-      fw_thread.join();
-      std::thread rev_thread = matrix->getPValues(scoresRev, pvaluesRev);
-      rev_thread.join();
-  }
-  
-  
-  std::vector<char> temp;
-  std::vector<double> pvaluesFw, pvaluesRev, scoresFw, scoresRev;
-  std::stringstream stream;
-  std::set<size_t> positions_to_read_again;
   Pwm* matrix;
   ChromoVector* sequences;
   std::vector<std::vector<char> > words_as_paths;
@@ -496,7 +370,7 @@ BENCHMARK_F(ReadWords, Baseline, 2, 1) {
 BENCHMARK_F(ReadWords, VMM, 1, 1) {
   this->read_new();
 }
-*/
+
 
 BENCHMARK_F(CalcPvalues, Baseline, 1, 1) {
   this->pvalues(classic);
@@ -505,6 +379,7 @@ BENCHMARK_F(CalcPvalues, Baseline, 1, 1) {
 BENCHMARK_F(CalcPvalues, Advanced, 1, 1) {
   this->pvalues(distance);
 }
+*/
 
 int main() {
   hayai::ConsoleOutputter consoleOutputter;

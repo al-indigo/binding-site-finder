@@ -45,13 +45,11 @@ inline static std::map<double, double> recalc_score_hash (std::map<double, doubl
   return new_scores;
 }
 
-inline static std::map<double, double> count_distribution_after_threshold (pwmMatrix& matrix, double * scores_optimistic, double threshold) {
-  std::map<double, double> scores;
-  scores.insert(std::make_pair(0.0, 1.0));
+void count_distribution_after_threshold (pwmMatrix& matrix, double * scores_optimistic, double threshold, std::map<double, double>& distribution) {
+  distribution.insert(std::make_pair(0.0, 1.0));
   for (int row = 0; row < matrix.rows; row++) {
-    scores = recalc_score_hash(scores, matrix, row, threshold - scores_optimistic[row]);
+    distribution = recalc_score_hash(distribution, matrix, row, threshold - scores_optimistic[row]);
   }
-  return scores;
 }
 
 inline static double score_mean (pwmMatrix& matrix) {
@@ -105,7 +103,7 @@ inline static std::map<double,double>  count_distribution_under_pvalue (double m
     while (values_sum < look_for_count) {
       double approximate_threshold;
       approximate_threshold = threshold_gauss_estimation(max_pvalue, matrix);
-      cnt_distribution = count_distribution_after_threshold(matrix, scores_optimistic, approximate_threshold);
+      count_distribution_after_threshold(matrix, scores_optimistic, approximate_threshold, cnt_distribution);
       max_pvalue *= 2; // if estimation counted too small amount of words - try to lower threshold estimation by doubling pvalue
       
       values_sum = 0.0;
@@ -118,13 +116,13 @@ inline static std::map<double,double>  count_distribution_under_pvalue (double m
 }
 
 
-double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatrix& matrix) {
+double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatrix& matrix, std::map<double, double>& distribution) {
   double threshold = 0.0;
-  std::map<double, double> scores_hash = count_distribution_under_pvalue(p_value, scores_optimistic, matrix);
+  distribution = count_distribution_under_pvalue(p_value, scores_optimistic, matrix);
   std::vector<double> values, keys, scores_partial_sums;
 
-  scores_partial_sums.reserve(scores_hash.size());
-  for (std::map<double,double>::reverse_iterator i = scores_hash.rbegin(); i != scores_hash.rend(); ++i) {
+  scores_partial_sums.reserve(distribution.size());
+  for (std::map<double,double>::reverse_iterator i = distribution.rbegin(); i != distribution.rend(); ++i) {
     values.push_back((*i).second);
     keys.push_back((*i).first);
   }
@@ -139,76 +137,30 @@ double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatri
   return threshold;
 }
 
-void pvalues_by_thresholds(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values) {
-//  double min_threshold = *std::min_element(thresholds.begin(), thresholds.end());
-  double min_threshold = cutoff;
-  std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, (min_threshold)*DISCRETIZATION_VALUE);
-  
-  double volume = (double)vocabularyVolume(matrix);
-  p_values.reserve(thresholds.size());
-  
-  std::vector<double> values, counts_partial_sums;
-  for (std::map<double,double>::reverse_iterator i = counts.rbegin(); i != counts.rend(); ++i) {
-    values.push_back((*i).second);
-  }
-  std::partial_sum(values.begin(), values.end(), std::back_inserter(counts_partial_sums));
 
-  
-  std::map<double, double> cache;
-  
-  size_t counter = 0;
-  for (std::vector<double>::iterator i = thresholds.begin(); i != thresholds.end(); ++i) {
-    if (*i < cutoff) {
-      p_values.push_back(1.0);
-      continue;
-    }
-    std::map<double, double>::iterator search = cache.find(*i);
-    if (search != cache.end()) {
-      p_values.push_back(search->second);
-      counter++;
-    } else {
-      double counts_sum = 0.0;
-
-      std::map<double, double>::iterator lower = counts.lower_bound(*i * DISCRETIZATION_VALUE);
-      counts_sum = counts_partial_sums[std::distance(lower, counts.end()) - 1];
-
-      p_values.push_back(counts_sum/volume);
-      cache.insert(std::make_pair(*i, counts_sum/volume));
-    }
-  }
-  std::cout << "In cache: " << counter << std::endl;
-  return;
-}
-
-
-void pvalues_by_thresholds2(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values) {
-  double min_threshold = cutoff;
-  std::map<double, double> counts = count_distribution_after_threshold(matrix, scores_optimistic, (min_threshold)*DISCRETIZATION_VALUE);
-  
+void pvalues_by_thresholds(std::vector< double >& thresholds, double cutoff, double* scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values, std::map<double, double>& distribution) {
   double volume = (double)vocabularyVolume(matrix);
   
   //NOTE: for p_values, values and keys full space allocated at creation. We can't do this for counts_partial_sums becaus later use back_inserter
-  std::vector<double> values(counts.size()), 
-                      keys(counts.size()), 
+  std::vector<double> values(distribution.size()), 
+                      keys(distribution.size()), 
                       counts_partial_sums;
   p_values.resize(thresholds.size());
-  values.resize(counts.size());
-  keys.resize(counts.size());
+  values.resize(distribution.size());
+  keys.resize(distribution.size());
                       
-  counts_partial_sums.reserve(counts.size());
+  counts_partial_sums.reserve(distribution.size());
   
   size_t aux_counter = 0;
-  for (std::map<double,double>::reverse_iterator i = counts.rbegin(); i != counts.rend(); ++i, aux_counter++) {
+  for (std::map<double,double>::reverse_iterator i = distribution.rbegin(); i != distribution.rend(); ++i, aux_counter++) {
     values[aux_counter] = ((*i).second);
   }
 
   aux_counter = 0;
-  for (std::map<double,double>::iterator i = counts.begin(); i != counts.end(); ++i, aux_counter++) {
+  for (std::map<double,double>::iterator i = distribution.begin(); i != distribution.end(); ++i, aux_counter++) {
     keys[aux_counter] = ((*i).first);
   }
-  
-  std::map<double,double>::iterator st = counts.begin();
-  std::map<double,double>::iterator en = counts.end();
+
   std::partial_sum(values.begin(), values.end(), std::back_inserter(counts_partial_sums));
 
 

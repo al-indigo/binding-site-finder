@@ -1,14 +1,15 @@
 {
- "p-value": 0.001,
+ "p-value": 0.01,
  "result-filename": "dev",
  "matrix": "/Users/al/Downloads/pwms/TAL1_f2.pat",
  "memory": 5913,
  "tasks": [
   {
    "start": 0,
-   "end": 197195431,
+   "end": 0,
    "chromofile": "/Users/al/Downloads/genome/mm9/chr1.plain",
-   "chromoname": "chr2"
+//   "chromofile": "/Users/al/fast/chr1.plain",
+   "chromoname": "chr1"
   }
  ],
  "status-folder": "/Users/al/Programming/binding-site-finder/build/results/",

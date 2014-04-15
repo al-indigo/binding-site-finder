@@ -8,7 +8,9 @@
 ChromoVector::ChromoVector (std::vector<std::string> filenames, 
                             std::vector<std::string> description,
                             std::vector<size_t> start, 
-                            std::vector<size_t> end) {
+                            std::vector<size_t> end,
+                            size_t intersection_size
+                           ) {
   if (!(filenames.size() == description.size() && 
         description.size() == start.size() &&
         start.size() == end.size() &&
@@ -17,7 +19,7 @@ ChromoVector::ChromoVector (std::vector<std::string> filenames,
   } else {
     chromovector.reserve(filenames.size());
     for (size_t i = 0; i < filenames.size(); i++) {
-      chromovector.push_back(new Chromo(filenames[i], description[i], start[i], end[i]));
+      chromovector.push_back(new Chromo(filenames[i], description[i], start[i], end[i], intersection_size));
     }
   }
 }

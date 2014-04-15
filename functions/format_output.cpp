@@ -16,8 +16,6 @@ void format_bed(std::ostream& fout,
                 std::vector<double>& scoresRev) {
   std::vector<size_t>::iterator positerator = positions_to_read_again.begin()++;
 
-  double tstart, tstop, ttime;
-  tstart = (double)clock()/CLOCKS_PER_SEC;
   for (int k = 0; k < positions_to_read_again.size() ; k++) {
     double pv = std::min(pvaluesFw[k], pvaluesRev[k]);
 
@@ -39,8 +37,6 @@ void format_bed(std::ostream& fout,
               << pv << "\t" << "-1\t-1" << "\n";
     positerator++;
   }
-  tstop = (double)clock()/CLOCKS_PER_SEC;
-  std::cout << "Formatted out for " << tstop - tstart << " seconds" << std::endl; 
 }
 
 void format_bed(FILE * fout,

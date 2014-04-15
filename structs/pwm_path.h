@@ -8,6 +8,8 @@
 
 #define NUM_COLS 4
 
+//enum matrix_type {pcm, moods}; 
+enum matrix_optimization_type {pat, pat_bit_optimization}; //bit optimization type is connected with word-to-path procedure in chromo.cpp. There is a bit-optimized version that need a special form of matrix.
 
 /* Inlined for better performance */
 
@@ -15,31 +17,63 @@ typedef struct pwm_path {
   char * path;
   size_t length;
   bool final;
+  std::vector<char> word;
   pwm_path() { path = NULL; length = 0; final = false; }
  ~pwm_path() { delete[] path; }
-  void init (size_t _length){ path = new char[_length * (sizeof(uint32_t) + _length - 1)/sizeof(uint32_t) ]; length = _length; memset(path, 0, sizeof(char) * _length * (sizeof(uint32_t) + _length - 1)/sizeof(uint32_t) ); }
+  void init (size_t _length){ 
+    path = new char[_length * (sizeof(uint32_t) + _length - 1)/sizeof(uint32_t) ];
+    length = _length; 
+    memset(path, 0, sizeof(char) * _length * (sizeof(uint32_t) + _length - 1)/sizeof(uint32_t) );
+    word.resize(length+1);
+  }
   
   /* NOTE: I'm using here vector instead of char[] to avoid leaks in future: it's simplier to maintain */   
-  std::vector<char> getWord() {
-    std::vector<char> word(length+1);
+  std::vector<char> getWord(matrix_optimization_type type) {
     word[length] = '\0';
-    for(int i = 0; i < length; i++) {
-      switch (path[i]) {
-        case 0: 
-          word[i] = 'A';
-          break;
-        case 1:
-          word[i] = 'C';
-          break;
-        case 2:
-          word[i] = 'G';
-          break;
-        case 3:
-          word[i] = 'T';
-          break;
-        default:
-          std::cerr << "Something wrong with the matrix: it seems to have more than 4 columns" << std::endl;
-          exit(-1);
+    switch (type) {
+      case pat: {
+        for(int i = 0; i < length; i++) {
+          switch (path[i]) {
+            case 0: 
+              word[i] = 'A';
+              break;
+            case 1:
+              word[i] = 'C';
+              break;
+            case 2:
+              word[i] = 'G';
+              break;
+            case 3:
+              word[i] = 'T';
+              break;
+            default:
+              std::cerr << "Something wrong with the matrix: it seems to have more than 4 columns" << std::endl;
+              exit(-1);
+          }
+        }
+        break;
+      }
+      case pat_bit_optimization: {
+        for(int i = 0; i < length; i++) {
+          switch (path[i]) {
+            case 0: 
+              word[i] = 'A';
+              break;
+            case 1:
+              word[i] = 'C';
+              break;
+            case 2:
+              word[i] = 'T';
+              break;
+            case 3:
+              word[i] = 'G';
+              break;
+            default:
+              std::cerr << "Something wrong with the matrix: it seems to have more than 4 columns" << std::endl;
+              exit(-1);
+          }
+        }
+        break;
       }
     }
     return word;

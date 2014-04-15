@@ -13,10 +13,11 @@
 //TODO: think about algorithm to make it bulk operational
 //TODO: NOTE: no support for backgrounds for now (A=25%, C=25%, G=25%, T=25%)
 
-double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatrix& matrix);
+double threshold_by_pvalue (double p_value, double * scores_optimistic, pwmMatrix& matrix, std::map<double, double>& distribution);
 
-void pvalues_by_thresholds(std::vector<double>& thresholds, double cutoff, double * scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values);
-void pvalues_by_thresholds2(std::vector<double>& thresholds, double cutoff, double * scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values);
+void count_distribution_after_threshold (pwmMatrix& matrix, double * scores_optimistic, double threshold, std::map<double, double>& distribution);
+
+void pvalues_by_thresholds(std::vector<double>& thresholds, double cutoff, double * scores_optimistic, pwmMatrix& matrix, std::vector<double>& p_values, std::map<double, double>& distribution);
 
 
 #endif

@@ -1,18 +1,10 @@
 #ifndef CHROMO_H
 #define CHROMO_H
 
-/*NOTE: Important! I assume here that there is no words longer than 128 symbols.
- *      In fact I'm searching the same places but we getting rid of duplicates in merge-sort.
- */
-#define INTERSECTION_SIZE 128LLU
-
-/*NOTE: Here the part-size that is stored in-memory is defined. 
- *      You may change it if you want but I've measured -- it's optimal 
- *      for regular HDD.*/
 /* IMPORTANT: more block you use, faster the program works -- it needs to make less
- *            merges of results which take lot of time
+ *            merges of results which take lot of time. Block size is in bytes
  */
-#define READ_BLOCK_SIZE size_t(96*1024*1024LLU - INTERSECTION_SIZE)
+#define READ_BLOCK_SIZE size_t(96*1024*1024LLU)
 
 
 #include <string>
@@ -25,14 +17,24 @@ class Chromo {
   std::string description;
   std::size_t start;
   std::size_t end;
+  
+  size_t intersection_size; //NOTE: intersection size must be equal to length of matrix, otherwise in multithreaded mode there will be race-condition.
+//  size_t block_size;        //It's real read block: it's equal READ_BLOCK_SIZE-intersection_size
+  
   std::vector<std::size_t> start_part;
   std::vector<std::size_t> end_part;
   std::vector<std::size_t> length_part;
   char * sequence;
-  size_t current_part;
+  size_t seq_start;
+  std::atomic_size_t current_part;
+
+  std::mutex lock;
+#ifdef DDEBUG_PRINT
+  std::mutex print_lock;
+#endif
   
 public:
-    Chromo (std::string _filename, std::string _description, std::size_t _start, std::size_t _end);
+    Chromo (std::string _filename, std::string _description, std::size_t _start, std::size_t _end, size_t _intersection_size);
     
     std::string& getFilename();
     std::string& getDescription();

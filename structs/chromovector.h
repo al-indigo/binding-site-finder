@@ -14,7 +14,9 @@ public:
   ChromoVector (std::vector<std::string> filenames,
                 std::vector<std::string> description,
                 std::vector<size_t> start,
-                std::vector<size_t> end);
+                std::vector<size_t> end,
+                size_t intersection_size
+               );
   size_t size();
   std::string& getFilename(size_t sequence_number);
   std::string& getDescription(size_t sequence_number);
