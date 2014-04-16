@@ -61,11 +61,11 @@ public:
     
     void                                getScores(std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev, optimization_type _type = classic);
     
-    const double                        getThreshold() {return this->threshold;}
-    const size_t                        getNumberOfWords() {return this->words_to_find; };
-    const size_t                        getNumberOfWordsFound() {return this->words_found; };
-    const unsigned int                  getNumberOfWordLeft() {return this->words_to_find - this->words_found; };
-    const matrix_optimization_type      getMatrixType() {return this->type; }
+    double                        getThreshold() {return this->threshold;}
+    size_t                        getNumberOfWords() {return this->words_to_find; };
+    size_t                        getNumberOfWordsFound() {return this->words_found; };
+    unsigned int                  getNumberOfWordLeft() {return this->words_to_find - this->words_found; };
+    matrix_optimization_type      getMatrixType() {return this->type; }
     
     bool                                getScorePair (char * word, std::pair<double, double>& scores);
 
