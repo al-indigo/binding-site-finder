@@ -70,6 +70,7 @@ Chromo::Chromo (std::string _filename, std::string _description, size_t _start, 
   for (size_t i=0; i < (end - start)/READ_BLOCK_SIZE + 1; i++) {
     std::cout << "Parts: " <<start_part[i] << "   " << end_part[i] << "    " << length_part[i] << std::endl;
   }
+  number_of_parts = (end - start)/READ_BLOCK_SIZE + 1;
 }
 
 std::string& Chromo::getFilename() {
@@ -84,7 +85,7 @@ std::string& Chromo::getDescription() {
 char* Chromo::getSeqPtr(size_t part_number) {
     
     
-    if (part_number > this->getNumberOfParts() - 1) {
+    if (part_number > number_of_parts - 1) {
       throw std::invalid_argument("Incorrect part_number");
     }
     
@@ -125,7 +126,7 @@ char* Chromo::getSeqPtr(size_t part_number) {
 
 //This returns absolute offset of given part in file.
 size_t Chromo::getPartOffset ( size_t part_number ) {
-    if (part_number > this->getNumberOfParts() - 1) {
+    if (part_number > this->number_of_parts - 1) {
       throw std::invalid_argument("Incorrect part_number");
     }
     return start_part[part_number];
@@ -182,7 +183,7 @@ void Chromo::getWordsAsPaths (std::vector<size_t>& positions, size_t length, std
 }
 
 size_t Chromo::getNumberOfParts() {
-    return (end - start)/READ_BLOCK_SIZE + 1;
+    return number_of_parts;
 }
 
 size_t Chromo::getPartLength(size_t part_number) {
@@ -200,7 +201,7 @@ void Chromo::releasePart ( size_t part_number ) {
 void Chromo::getWordAsPathTest (size_t position, size_t length, std::vector<char>& result) {
   //guess part, where word is located
   size_t part_no = 0;
-  if (position >= end_part[getNumberOfParts()-1] - length) {
+  if (position >= end_part[number_of_parts-1] - length) {
     std::cerr << "This should never happen! Bounds violation" << std::endl;
     exit(-1);
   }
@@ -228,7 +229,7 @@ void Chromo::getWordAsPathTest (size_t position, size_t length, std::vector<char
 bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores) {
   //guess part, where word is located
   size_t part_no = 0;
-  if (position >= end_part[getNumberOfParts()-1] - matrix.getLength()) {
+  if (position >= end_part[number_of_parts-1] - matrix.getLength()) {
     std::cerr << "This should never happen! Bounds violation" << std::endl;
     exit(-1);
   }

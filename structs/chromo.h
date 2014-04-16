@@ -29,6 +29,7 @@ class Chromo {
   char * sequence;
   size_t seq_start;
   std::atomic_size_t current_part;
+  size_t number_of_parts;
 
   std::mutex lock;
 #ifdef DDEBUG_PRINT
