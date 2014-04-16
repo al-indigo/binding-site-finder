@@ -16,7 +16,7 @@ void format_bed(std::ostream& fout,
                 std::vector<double>& scoresRev) {
   std::vector<size_t>::iterator positerator = positions_to_read_again.begin()++;
 
-  for (int k = 0; k < positions_to_read_again.size() ; k++) {
+  for (unsigned int k = 0; k < positions_to_read_again.size() ; k++) {
     double pv = std::min(pvaluesFw[k], pvaluesRev[k]);
 
     int narrowPeakScore = 0;
@@ -48,7 +48,7 @@ void format_bed(FILE * fout,
                 std::vector<double>& scoresRev) {
   std::vector<size_t>::iterator positerator = positions_to_read_again.begin()++;
 
-  for (int k = 0; k < positions_to_read_again.size() ; k++) {
+  for (unsigned int k = 0; k < positions_to_read_again.size() ; k++) {
     double pv = std::min(pvaluesFw[k], pvaluesRev[k]);
 
     int narrowPeakScore = 0;

@@ -30,7 +30,7 @@ inline static std::map<double, double> recalc_score_hash (std::map<double, doubl
   for (std::map <double, double>::iterator i = scores.begin(); i != scores.end(); ++i) {
     double score = (*i).first;
     double count = (*i).second;
-    for (int k = 0; k < matrix.cols; k++) {
+    for (unsigned int k = 0; k < matrix.cols; k++) {
       double new_score = score + matrix(row, k);
       if (new_score >= least_sufficient) {
         std::map<double, double>::iterator tempit = new_scores.find(new_score);
@@ -47,16 +47,16 @@ inline static std::map<double, double> recalc_score_hash (std::map<double, doubl
 
 void count_distribution_after_threshold (pwmMatrix& matrix, double * scores_optimistic, double threshold, std::map<double, double>& distribution) {
   distribution.insert(std::make_pair(0.0, 1.0));
-  for (int row = 0; row < matrix.rows; row++) {
+  for (unsigned int row = 0; row < matrix.rows; row++) {
     distribution = recalc_score_hash(distribution, matrix, row, threshold - scores_optimistic[row]);
   }
 }
 
 inline static double score_mean (pwmMatrix& matrix) {
   double result = 0.0;
-  for (int row = 0; row < matrix.rows; row++) {
+  for (unsigned int row = 0; row < matrix.rows; row++) {
     double row_sum = 0.0;
-    for ( int col = 0; col < matrix.cols; col++) {
+    for (unsigned int col = 0; col < matrix.cols; col++) {
       row_sum += matrix(row,col);
     }
     result += row_sum/4.0;
@@ -66,11 +66,11 @@ inline static double score_mean (pwmMatrix& matrix) {
 
 inline static double score_variance (pwmMatrix& matrix) {
   double result = 0.0;
-  for (int row = 0; row < matrix.rows; row++) {
+  for (unsigned int row = 0; row < matrix.rows; row++) {
     double mean_value = 0.0;
     double mean_square = 0.0;
     
-    for ( int col = 0; col < matrix.cols; col++) {
+    for (unsigned int col = 0; col < matrix.cols; col++) {
       mean_value += matrix(row,col);
       mean_square += matrix(row,col) * matrix(row,col);
     }

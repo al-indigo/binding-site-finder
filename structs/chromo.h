@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <mutex>
+#include <atomic>
 #include "pwm.h"
 
 class Chromo {

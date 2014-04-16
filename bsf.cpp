@@ -14,6 +14,7 @@
 #include <sstream>
 #include <thread>
 #include <functional>
+#include <mutex>
 
 #include "ahoc/AhoCorasickPlus.h"
 #include "structs/pwm.h"
@@ -51,14 +52,8 @@ void naive_walk(size_t& s_i, size_t& start, size_t&stop, std::vector<double>& sc
   pvaluesFw.resize(scoresFw.size());
   pvaluesRev.resize(scoresRev.size());
   
-//  std::thread fw_thread = matrix.getPValues(scoresFw, pvaluesFw);
-//  std::thread rev_thread = matrix.getPValues(scoresRev, pvaluesRev);
-//  matrix.getPValuesThreaded(scoresFw, pvaluesFw).join();
-//  matrix.getPValuesThreaded(scoresRev, pvaluesRev).join();
-    matrix.getPValuesPlain(scoresFw, pvaluesFw);
-    matrix.getPValuesPlain(scoresRev, pvaluesRev);
-//  fw_thread.join();
-//  rev_thread.join();
+  matrix.getPValuesPlain(scoresFw, pvaluesFw);
+  matrix.getPValuesPlain(scoresRev, pvaluesRev);
 }
 
 int predict(size_t mem_allowed,
@@ -99,7 +94,7 @@ int predict(size_t mem_allowed,
   Pwm matrix(matrix_filename.c_str(), p_value, type);
   
   size_t total_length = 0;
-  for (size_t i = 0; i < starts.size(); i++) {
+  for (auto& i: starts) {
     total_length += ends[i] - starts[i];
   }
   
@@ -176,14 +171,14 @@ int predict(size_t mem_allowed,
   
     std::vector<std::string> merged_files;
     
-    for (int i = 0; i < files_to_merge.size(); i++) {
+    for (size_t i = 0; i < files_to_merge.size(); i++) {
       merge_files(i, result_folder, result_filename, files_to_merge, merged_files);
       
       write_status(60.0 + 15.0 * (double)i/(double)files_to_merge.size(), status_folder, status_filename, "merging files", "");
     }
  
     FILE * fout = fopen((result_folder + result_filename).c_str(), "a");
-    for (int i = 0; i < merged_files.size(); i++) {
+    for (size_t i = 0; i < merged_files.size(); i++) {
       FILE * fin = fopen(merged_files[i].c_str(), "r");
       while (!feof(fin)) {
         std::vector<size_t> positions_to_read_again;

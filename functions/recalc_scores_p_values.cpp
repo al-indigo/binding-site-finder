@@ -19,7 +19,7 @@ void recalc_scores_p_values(FILE * fin,
                             std::vector<double>& scoresRev) {  
   size_t buf = 0;
   size_t last = -1;
-  for (int k = 0; k < mem_allowed / 8 && !feof(fin) && !ferror(fin) && fscanf(fin,"%lx\n", &buf); k++) {
+  for (unsigned int k = 0; k < mem_allowed / 8 && !feof(fin) && !ferror(fin) && fscanf(fin,"%lx\n", &buf); k++) {
     if (last != buf) {
       positions_to_read_again.push_back(buf);
       last = buf;

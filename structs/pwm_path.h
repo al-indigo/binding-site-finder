@@ -32,7 +32,7 @@ typedef struct pwm_path {
     word[length] = '\0';
     switch (type) {
       case pat: {
-        for(int i = 0; i < length; i++) {
+        for(unsigned int i = 0; i < length; i++) {
           switch (path[i]) {
             case 0: 
               word[i] = 'A';
@@ -54,7 +54,7 @@ typedef struct pwm_path {
         break;
       }
       case pat_bit_optimization: {
-        for(int i = 0; i < length; i++) {
+        for(unsigned int i = 0; i < length; i++) {
           switch (path[i]) {
             case 0: 
               word[i] = 'A';
@@ -103,7 +103,7 @@ typedef struct pwm_path {
   void makeHop(size_t hopPoint) {
     if (hopPoint == length - 1) return;
 
-    for (int i = hopPoint + 1; i < length - 1; i++) {
+    for (unsigned int i = hopPoint + 1; i < length - 1; i++) {
       path[i] = 0;
     }
 

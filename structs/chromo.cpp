@@ -28,7 +28,11 @@ Chromo::Chromo (std::string _filename, std::string _description, size_t _start, 
   char * buf = new char[READ_BLOCK_SIZE];
   FILE * fin = fopen(filename.c_str(), "r");
   fseek(fin, 0, SEEK_SET);
-  fread(buf, sizeof(char), READ_BLOCK_SIZE, fin);
+  size_t bytes_read = fread(buf, sizeof(char), READ_BLOCK_SIZE, fin);
+  if (bytes_read == 0) {
+    std::cerr << "Chromosome file " << filename << " is empty, can not continue" << std::endl;
+    exit(-1);
+  }
   // If it's fasta with description, we'll parse it here.
   if (buf[0] == '>') {
     char * linebr = strchr(buf, '\n');
@@ -99,7 +103,11 @@ char* Chromo::getSeqPtr(size_t part_number) {
     sequence = new char[end_part[part_number] - start_part[part_number] + 1];
     FILE * fin = fopen(filename.c_str(), "r");
     fseek(fin, seq_start + start_part[part_number], SEEK_SET);
-    fread(sequence, sizeof(char), end_part[part_number] - start_part[part_number], fin);
+    size_t bytes_read = fread(sequence, sizeof(char), end_part[part_number] - start_part[part_number], fin);
+    if (bytes_read == 0) {
+      std::cerr << "Read error occured while reading chromosome file. Can not continue." << std::endl;
+      exit(-1);
+    }
     
     for (size_t i = 0; i < end_part[part_number] - start_part[part_number]; i++) {
       sequence[i] &=0xDF; //uppercase trick

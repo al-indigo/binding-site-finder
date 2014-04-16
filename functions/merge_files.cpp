@@ -18,7 +18,7 @@ void merge_files(int id,
   std::ofstream fout(tempfilename.c_str());
   fout.close();
   
-  for (int j = 0; j < files_to_merge[id].size(); j++) {
+  for (unsigned int j = 0; j < files_to_merge[id].size(); j++) {
     std::string read_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(id+1) + j, &t);
     std::string write_file = prepare_filename(result_folder + result_filename, std::string("-temp-merge-stl-"), 10000000*(id+1) + j+1, &t);
     

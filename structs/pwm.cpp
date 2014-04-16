@@ -137,7 +137,7 @@ double * Pwm::InitScoresAheadOptimistic(pwmMatrix & pwm) {
   memset(scoreVector, 0,  sizeof(double) * (pwm.rows + 1));
   for (int i = pwm.rows - 1; i > 0; --i) {
     double max = -1 * std::numeric_limits< double >::max();
-    for (int j = 0; j < pwm.cols; ++j) {
+    for (unsigned int j = 0; j < pwm.cols; ++j) {
       max = max >= pwm(i,j) ? max : pwm(i,j);
     }
     scoreVector[i-1] = scoreVector[i] + max;
@@ -182,7 +182,7 @@ std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
     double fwScore = 0.0;
     double revScore = 0.0;
     bool needBreak = false;
-    for (int depth = 0; depth < lastPath.length; depth++) {
+    for (unsigned int depth = 0; depth < lastPath.length; depth++) {
       fwScore += pwmFw(depth, lastPath.path[depth]);
       revScore += pwmRev(depth, lastPath.path[depth]);
       /* here we check if we could ever get more scores on current path */
@@ -223,7 +223,7 @@ bool Pwm::getScorePair (char * word, std::pair<double, double>& scores) {
     double fwScore = 0.0;
     double revScore = 0.0;
     
-    for (int k = 0; k < this->getLength(); k++) {
+    for (unsigned int k = 0; k < this->getLength(); k++) {
       fwScore += pwmFw(k, word[k]);
       revScore += pwmRev(k, word[k]);
     }
