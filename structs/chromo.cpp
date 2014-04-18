@@ -67,9 +67,11 @@ Chromo::Chromo (std::string _filename, std::string _description, size_t _start, 
     end_part.push_back(std::min(end, start + READ_BLOCK_SIZE*(i+1)));
     length_part.push_back(end_part[i] - start_part[i]);
   }
+#ifdef DDEBUG_PRINT  
   for (size_t i=0; i < (end - start)/READ_BLOCK_SIZE + 1; i++) {
     std::cout << "Parts: " <<start_part[i] << "   " << end_part[i] << "    " << length_part[i] << std::endl;
   }
+#endif
   number_of_parts = (end - start)/READ_BLOCK_SIZE + 1;
 }
 
@@ -229,13 +231,13 @@ void Chromo::getWordAsPathTest (size_t position, size_t length, std::vector<char
 bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores) {
   //guess part, where word is located
   size_t part_no = 0;
-  if (position >= end_part[number_of_parts-1] - matrix.getLength()) {
+  if (position >= end_part[number_of_parts-1] - intersection_size) {
     std::cerr << "This should never happen! Bounds violation" << std::endl;
     exit(-1);
   }
   
   for (size_t i = 0; i < end_part.size(); i++) {
-    if (position < end_part[i] - matrix.getLength()) {
+    if (position < end_part[i] - intersection_size) {
       part_no = i;
       break;
     }
@@ -250,21 +252,114 @@ bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, doub
     sequence = getSeqPtr(part_no);
   }
 
-  size_t read_start = position - getPartOffset(current_part.load());
+  size_t read_start = position - start_part[current_part.load()];
 //  std::cout << read_start << "\t"  << length << std::endl;
-  char buffer[matrix.getLength()];
+  char buffer[intersection_size];
 //  memcpy(buffer, sequence + read_start, length); //TODO: Check if need to copy for real.
   if (matrix.getMatrixType() == pat) {
-    if(!wordToPath(sequence + read_start, buffer, matrix.getLength())) {
+    if(!wordToPath(sequence + read_start, buffer, intersection_size)) {
       return false;
     }
   } else if (matrix.getMatrixType() == pat_bit_optimization) {
-    if(!wordToPathBit(sequence + read_start, buffer, matrix.getLength())) {
+    if(!wordToPathBit(sequence + read_start, buffer, intersection_size)) {
       return false;
     }
   }
   
   return matrix.getScorePair(buffer, scores);
+}
+
+
+inline static std::vector<size_t> wordToPathBitVector (char * buffer, char * destination, size_t length, size_t word_length) {
+  std::vector<bool> is_invalid_marker(length, true);
+  long int wlen = (long int) word_length;
+  std::vector<size_t> need_to_check;
+  std::vector<long int> need_to_ignore_neighbourhood;
+  
+  for (size_t i=0; i< length; i++) {
+    char bitrepr = 0x0F;
+    bitrepr &= buffer[i];
+    is_invalid_marker[i] = (0x00|(buffer[i]&0x08)>>3);
+    destination[i] = (bitrepr&0x07)>>1;
+  }
+  
+  need_to_ignore_neighbourhood.push_back(-2*wlen);
+  for (long int i=0; i < length; i++) {
+    if (is_invalid_marker[i]) {
+      need_to_ignore_neighbourhood.push_back(i);
+    }
+  }
+  need_to_ignore_neighbourhood.push_back(length);
+
+  std::vector<long int>::iterator ignore_iterator = need_to_ignore_neighbourhood.begin();
+  
+
+  long int first = *ignore_iterator;
+  ignore_iterator++;
+  long int second = *ignore_iterator;
+
+  for (long int i=0; i < length; i++) {
+    if (ignore_iterator != need_to_ignore_neighbourhood.end()) {
+        if (i > first && i < second - wlen) {
+            need_to_check.push_back(i);
+            continue;
+        } else if (i >= first && i >= second - wlen) {
+            first = second;
+            ignore_iterator++;
+            second = *ignore_iterator;
+            i--;
+            continue;
+        } else if (i <= first) {
+            continue;
+        } else if (second - first < wlen) {
+            first = second;
+            ignore_iterator++;
+            second = *ignore_iterator;
+            continue;
+        } else {
+            std::cerr << "Algorithm failure for vector word to path function. " << first << "\t" << second - wlen << "\t" << i << std::endl;
+            exit(-12);
+        }
+    } else {
+        break;
+    }
+  }
+  
+  return need_to_check;
+}
+
+
+void Chromo::getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<size_t>& positions) {
+  //guess part, where word is located
+  size_t part_no = 0;
+  if (last > end_part[number_of_parts-1]) {
+    std::cerr << "This should never happen! Bounds violation: last " << last << ", end: " << end_part[number_of_parts-1] - intersection_size << std::endl;
+    exit(-1);
+  }
+  
+  for (size_t i = 0; i < end_part.size(); i++) {
+    if (first < end_part[i] - intersection_size) {
+      part_no = i;
+      break;
+    }
+  }
+  
+  if (current_part.load() != part_no) {
+    sequence = getSeqPtr(part_no);
+  }
+
+  size_t read_start = first - start_part[current_part.load()];
+
+  char * buffer = new char[last - first + intersection_size];
+
+  std::vector<size_t> need_to_check;
+
+  std::pair<double, double> scores;
+  need_to_check = wordToPathBitVector(sequence + read_start, buffer, last-first+intersection_size, intersection_size);
+  matrix.getScorePairsVector(buffer, need_to_check, scoresFw, scoresRev, positions, first);
+
+  delete [] buffer;
+  return;
 }
 
 

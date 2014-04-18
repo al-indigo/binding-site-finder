@@ -39,16 +39,9 @@ enum methods {naive, ahoc};
 #define CALIBRATION_VALUE(total_length) 214600 + 0.0006868 * total_length
 
 void naive_walk(size_t& s_i, size_t& start, size_t&stop, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<double>& pvaluesFw, std::vector<double>& pvaluesRev, std::vector<size_t>& matched, Pwm& matrix, ChromoVector& sequences, size_t& offset) {
-//  for (size_t i = 0; i < sequences.getPartLength(s_i, p_i) - matrix.getLength(); i++) {
-  for (size_t i = start; i < stop; i++) {
-    std::pair<double, double> scores;
-    if (sequences.getWordScores(s_i, i + offset, matrix, scores)) {
-      scoresFw.push_back(scores.first);
-      scoresRev.push_back(scores.second);
-      matched.push_back(i + offset);
-    }
-  }
-          
+
+  sequences.getWordScoresVector(s_i, offset + start, offset + stop, matrix, scoresFw, scoresRev, matched);
+
   pvaluesFw.resize(scoresFw.size());
   pvaluesRev.resize(scoresRev.size());
   
@@ -128,7 +121,6 @@ int predict(size_t mem_allowed,
           en[i] = (i+1)*(sequences.getPartLength(s_i, p_i)/numthreads);
         }
         en[numthreads-1] = sequences.getPartLength(s_i, p_i) - matrix.getLength();
-       
         {
           std::vector<std::thread> threads;
           for (int i = 0; i < numthreads; i++) {

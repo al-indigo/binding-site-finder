@@ -13,7 +13,7 @@
 #include <mutex>
 #include <atomic>
 #include "pwm.h"
-
+//#define DDEBUG_PRINT
 class Chromo {
   std::string filename;
   std::string description;
@@ -54,6 +54,8 @@ public:
     void getWordsAsPaths (std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
     void getWordAsPathTest (size_t position, size_t length, std::vector<char>& result);
     bool getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores);
+    void getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector< double >& scoresFw, std::vector< double >& scoresRev, std::vector< size_t >& positions);
+
     
    ~Chromo ();
 };

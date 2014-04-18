@@ -67,7 +67,8 @@ public:
     unsigned int                  getNumberOfWordLeft() {return this->words_to_find - this->words_found; };
     matrix_optimization_type      getMatrixType() {return this->type; }
     
-    bool                                getScorePair (char * word, std::pair<double, double>& scores);
+    bool                          getScorePair (char * word, std::pair<double, double>& scores);
+    void                          getScorePairsVector (char * buffer, std::vector<size_t>& need_to_check, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<size_t>& positions, size_t offset);
 
 
 };
