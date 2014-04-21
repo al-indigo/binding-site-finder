@@ -38,15 +38,13 @@ enum methods {naive, ahoc};
  *  8) coefficients for this linear are your calibration value. */
 #define CALIBRATION_VALUE(total_length) 214600 + 0.0006868 * total_length
 
-void naive_walk(size_t& s_i, size_t& start, size_t&stop, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<double>& pvaluesFw, std::vector<double>& pvaluesRev, std::vector<size_t>& matched, Pwm& matrix, ChromoVector& sequences, size_t& offset) {
+void naive_walk(size_t& s_i, size_t& start, size_t&stop, std::vector<double>& scores, std::vector<bool>& strand, std::vector<double>& pvalues, std::vector<uint32_t>& matched, Pwm& matrix, ChromoVector& sequences, size_t& offset) {
 
-  sequences.getWordScoresVector(s_i, offset + start, offset + stop, matrix, scoresFw, scoresRev, matched);
+  sequences.getWordScoresVector(s_i, offset + start, offset + stop, matrix, scores, strand, matched);
 
-  pvaluesFw.resize(scoresFw.size());
-  pvaluesRev.resize(scoresRev.size());
+  pvalues.resize(scores.size());
   
-  matrix.getPValuesPlain(scoresFw, pvaluesFw);
-  matrix.getPValuesPlain(scoresRev, pvaluesRev);
+  matrix.getPValuesPlain(scores, pvalues);
 }
 
 int predict(size_t mem_allowed,
@@ -113,28 +111,25 @@ int predict(size_t mem_allowed,
         sequences.getSeq(s_i, p_i);
         size_t offset = sequences.getAbsoluteOffset(s_i, p_i);
         int numthreads = 4;
-        std::vector<std::vector<double> > scoresFw(numthreads), scoresRev(numthreads), pvaluesFw(numthreads), pvaluesRev(numthreads);
-        std::vector<std::vector<size_t> > matched(numthreads);
+        std::vector<std::vector<double> > scores(numthreads), pvalues(numthreads);
+        std::vector<std::vector<uint32_t> > matched(numthreads);
+        std::vector<std::vector<bool> > strand(numthreads);
         std::vector<size_t> st(numthreads), en(numthreads);
         for (int i = 0; i < numthreads; i++) {
           st[i] = i*(sequences.getPartLength(s_i, p_i)/numthreads);
           en[i] = (i+1)*(sequences.getPartLength(s_i, p_i)/numthreads);
         }
         en[numthreads-1] = sequences.getPartLength(s_i, p_i) - matrix.getLength();
-        {
-          std::vector<std::thread> threads;
-          for (int i = 0; i < numthreads; i++) {
-            threads.push_back(std::thread(naive_walk, std::ref(s_i), std::ref(st[i]), std::ref(en[i]), std::ref(scoresFw[i]), std::ref(scoresRev[i]), std::ref(pvaluesFw[i]), std::ref(pvaluesRev[i]), std::ref(matched[i]), std::ref(matrix), std::ref(sequences), std::ref(offset)));
-          }
-          
-          for (auto& t: threads) {
-            t.join();
-          }
-        }
         
+        std::vector<std::thread> threads;
+        for (int i = 0; i < numthreads; i++) {
+          threads.push_back(std::thread(naive_walk, std::ref(s_i), std::ref(st[i]), std::ref(en[i]), std::ref(scores[i]), std::ref(strand[i]), std::ref(pvalues[i]), std::ref(matched[i]), std::ref(matrix), std::ref(sequences), std::ref(offset)));
+        }
+      
         FILE * fout = fopen((result_folder + result_filename).c_str(), "a");
         for (int i = 0; i < numthreads; i++) {
-          format_bed(fout, chromonames[s_i], matched[i], pvaluesFw[i], pvaluesRev[i], scoresFw[i], scoresRev[i]);
+          threads[i].join();
+          format_bed(fout, chromonames[s_i], matched[i], pvalues[i], scores[i], strand[i], st[i]);
           write_status(100.0 * (((double)(s_i + 1) * (p_i + 1)) / ((double) sequences.size() * sequences.getNumberOfParts(s_i))), status_folder, status_filename, "searching (naive)", "" );
         }
         fflush(fout);

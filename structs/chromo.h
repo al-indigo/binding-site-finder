@@ -2,7 +2,9 @@
 #define CHROMO_H
 
 /* IMPORTANT: more block you use, faster the program works -- it needs to make less
- *            merges of results which take lot of time. Block size is in bytes
+ *            merges of results which take lot of time. Block size is in bytes.
+ * NEVER use READ_BLOCK_SIZE more than 2GB, I've chosen some tradeoff between size|performance here.
+ * It's likely has no sense to use blocks greater than 256MB in any case.
  */
 #define READ_BLOCK_SIZE size_t(96*1024*1024LLU)
 
@@ -54,7 +56,7 @@ public:
     void getWordsAsPaths (std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
     void getWordAsPathTest (size_t position, size_t length, std::vector<char>& result);
     bool getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores);
-    void getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector< double >& scoresFw, std::vector< double >& scoresRev, std::vector< size_t >& positions);
+    void getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector< double >& scores, std::vector< bool >& strand, std::vector< uint32_t >& positions);
 
     
    ~Chromo ();

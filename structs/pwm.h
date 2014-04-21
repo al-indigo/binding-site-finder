@@ -68,7 +68,7 @@ public:
     matrix_optimization_type      getMatrixType() {return this->type; }
     
     bool                          getScorePair (char * word, std::pair<double, double>& scores);
-    void                          getScorePairsVector (char * buffer, std::vector<size_t>& need_to_check, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<size_t>& positions, size_t offset);
+    void                          getScoresVector (char* buffer, std::vector< bool >& need_to_check, std::vector< double >& scores, std::vector< bool >& strand, std::vector< uint32_t >& positions, size_t offset);
 
 
 };

@@ -270,11 +270,11 @@ bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, doub
 }
 
 
-inline static std::vector<size_t> wordToPathBitVector (char * buffer, char * destination, size_t length, size_t word_length) {
-  std::vector<bool> is_invalid_marker(length, true);
-  long int wlen = (long int) word_length;
-  std::vector<size_t> need_to_check;
-  std::vector<long int> need_to_ignore_neighbourhood;
+std::vector<bool> wordToPathBitVector (char * buffer, char * destination, size_t length, size_t word_length) {
+  std::vector<bool> is_invalid_marker(length+1, true);
+  long int wlen = (int) word_length;
+  std::vector<bool> need_to_check_bool(length+1, true);
+  std::vector<int> need_to_ignore_neighbourhood;
   
   for (size_t i=0; i< length; i++) {
     char bitrepr = 0x0F;
@@ -282,54 +282,25 @@ inline static std::vector<size_t> wordToPathBitVector (char * buffer, char * des
     is_invalid_marker[i] = (0x00|(buffer[i]&0x08)>>3);
     destination[i] = (bitrepr&0x07)>>1;
   }
-  
-  need_to_ignore_neighbourhood.push_back(-2*wlen);
-  for (long int i=0; i < length; i++) {
+
+  for (int i = is_invalid_marker.size() - 1; i >= 0; i--) {
     if (is_invalid_marker[i]) {
-      need_to_ignore_neighbourhood.push_back(i);
-    }
-  }
-  need_to_ignore_neighbourhood.push_back(length);
-
-  std::vector<long int>::iterator ignore_iterator = need_to_ignore_neighbourhood.begin();
-  
-
-  long int first = *ignore_iterator;
-  ignore_iterator++;
-  long int second = *ignore_iterator;
-
-  for (long int i=0; i < length; i++) {
-    if (ignore_iterator != need_to_ignore_neighbourhood.end()) {
-        if (i > first && i < second - wlen) {
-            need_to_check.push_back(i);
-            continue;
-        } else if (i >= first && i >= second - wlen) {
-            first = second;
-            ignore_iterator++;
-            second = *ignore_iterator;
-            i--;
-            continue;
-        } else if (i <= first) {
-            continue;
-        } else if (second - first < wlen) {
-            first = second;
-            ignore_iterator++;
-            second = *ignore_iterator;
-            continue;
-        } else {
-            std::cerr << "Algorithm failure for vector word to path function. " << first << "\t" << second - wlen << "\t" << i << std::endl;
-            exit(-12);
+      for (int k = 0; k <= wlen && i > 0; k++) {
+        need_to_check_bool[i] = false;
+        i--;
+        if (is_invalid_marker[i]) {
+          need_to_check_bool[i] = false;
+          k = 0;
         }
-    } else {
-        break;
+      }
     }
   }
-  
-  return need_to_check;
+
+  return need_to_check_bool;
 }
 
 
-void Chromo::getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<size_t>& positions) {
+void Chromo::getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector<double>& scores, std::vector<bool>& strand, std::vector<uint32_t>& positions) {
   //guess part, where word is located
   size_t part_no = 0;
   if (last > end_part[number_of_parts-1]) {
@@ -352,11 +323,9 @@ void Chromo::getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::v
 
   char * buffer = new char[last - first + intersection_size];
 
-  std::vector<size_t> need_to_check;
-
-  std::pair<double, double> scores;
-  need_to_check = wordToPathBitVector(sequence + read_start, buffer, last-first+intersection_size, intersection_size);
-  matrix.getScorePairsVector(buffer, need_to_check, scoresFw, scoresRev, positions, first);
+  
+  std::vector<bool> need_to_check = wordToPathBitVector(sequence + read_start, buffer, last-first+intersection_size, intersection_size);
+  matrix.getScoresVector(buffer, need_to_check, scores, strand, positions, first);
 
   delete [] buffer;
   return;

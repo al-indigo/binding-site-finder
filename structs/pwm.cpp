@@ -234,21 +234,28 @@ bool Pwm::getScorePair (char * word, std::pair<double, double>& scores) {
 }
 
 
-void Pwm::getScorePairsVector (char * buffer, std::vector<size_t>& need_to_check, std::vector<double>& scoresFw, std::vector<double>& scoresRev, std::vector<size_t>& positions, size_t offset) {
-  for (size_t i = 0; i < need_to_check.size(); i++) {
-    char * word = buffer + need_to_check[i];
-    double fwScore = 0.0;
-    double revScore = 0.0;
-    
-    for (unsigned int k = 0; k < this->getLength(); k++) {
-      fwScore += pwmFw(k, word[k]);
-      revScore += pwmRev(k, word[k]);
-    }
-    
-    if (fwScore > threshold || revScore > threshold) {
-      scoresFw.push_back(fwScore);
-      scoresRev.push_back(revScore);
-      positions.push_back(need_to_check[i] + offset);      
+void Pwm::getScoresVector (char * buffer, std::vector<bool>& need_to_check, std::vector<double>& scores, std::vector<bool>& strand, std::vector<uint32_t>& positions, size_t offset) {
+  for (uint32_t i = 0; i < need_to_check.size(); i++) {
+    if (need_to_check[i]) {
+      char * word = buffer + i;
+      double fwScore = 0.0;
+      double revScore = 0.0;
+      
+      for (unsigned int k = 0; k < this->getLength(); k++) {
+        fwScore += pwmFw(k, word[k]);
+        revScore += pwmRev(k, word[k]);
+      }
+      
+      if (fwScore > threshold) {
+        scores.push_back(fwScore);
+        positions.push_back(i + offset);
+        strand.push_back(true);
+      }
+      if (revScore > threshold) {
+        scores.push_back(revScore);
+        positions.push_back(i + offset);
+        strand.push_back(false);
+      }
     }
   }
 }

@@ -66,6 +66,14 @@ void format_bed(FILE * fout,
                 std::vector<double>& scoresFw,
                 std::vector<double>& scoresRev);
 
+void format_bed(FILE * fout,
+                std::string& chromoname,
+                std::vector<uint32_t>& positions_to_read_again,
+                std::vector<double>& pvalues,
+                std::vector<double>& scores,
+                std::vector<bool>& strand,
+                size_t offset);
+
 void write_status(double percent, std::string status_folder, std::string status_filename, const char * explain, const char * result_file_path);
 
 
