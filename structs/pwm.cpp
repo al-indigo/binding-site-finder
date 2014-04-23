@@ -10,9 +10,6 @@
 
 #include "pwm.h"
 
-//#define DDEBUG_PRINT
-
-
 void Pwm::fillMatrixPwmClassic(std::vector<double>& scorebuffer) {
   int count = scorebuffer.size();
   for (int k=0; k<count; k++) {
@@ -84,8 +81,19 @@ Pwm::Pwm(std::string pwmFilename, double p_value, matrix_optimization_type _type
               fillMatrixPwmBit(scorebuffer);
               break;
   }
-
-
+//  if (SUPERALPHABET_SIZE > 1) {
+//    std::thread fw = pwmFw.fillq_threaded();
+//    std::thread rev = pwmRev.fillq_threaded();
+    std::thread fw(&pwmMatrix::fillq, std::ref(pwmFw));
+    std::thread rev(&pwmMatrix::fillq, std::ref(pwmRev));
+//  }
+//  pwmCeiled.fillq();
+#ifdef DDEBUG_PRINT
+  std::cout << "Fw Q matrix is " << std::endl;
+  pwmFw.printqMatrix();
+  std::cout << "Rev Q matrix is " << std::endl;
+  pwmRev.printqMatrix();
+#endif
   lastPath.init(pwmFw.rows);
 
 #ifdef DDEBUG_PRINT
@@ -113,6 +121,9 @@ Pwm::Pwm(std::string pwmFilename, double p_value, matrix_optimization_type _type
   
   threshold = this->get_threshold_by_pvalue(p_value);
   words_to_find =  2 * (size_t)(floor(p_value * pow(4, getLength())) - 1);
+  
+  fw.join();
+  rev.join();
 
   return;
 }
@@ -241,9 +252,23 @@ void Pwm::getScoresVector (char * buffer, std::vector<bool>& need_to_check, std:
       double fwScore = 0.0;
       double revScore = 0.0;
       
-      for (unsigned int k = 0; k < this->getLength(); k++) {
-        fwScore += pwmFw(k, word[k]);
-        revScore += pwmRev(k, word[k]);
+      if (SUPERALPHABET_SIZE > 1) {
+        pwmFw.getScoreQ(word, fwScore);
+        pwmRev.getScoreQ(word, revScore);
+        
+        #ifdef DDEBUG_PRINT      
+        double fwScoreTest = 0.0;
+        pwmFw.getScoreSimple(word, fwScoreTest);      
+        if (abs(fwScore - fwScoreTest) > 0.01) {
+          fwScore = 0.0;
+          pwmFw.getScoreQ(word, fwScore);
+        }
+        #endif      
+      } else {
+        for (unsigned int k = 0; k < this->getLength(); k++) {
+          fwScore += pwmFw(k, word[k]);
+          revScore += pwmRev(k, word[k]);
+        }        
       }
       
       if (fwScore > threshold) {
