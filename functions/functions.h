@@ -50,6 +50,17 @@ void recalc_scores_p_values(FILE * fin,
                             std::vector<double>& scoresFw, 
                             std::vector<double>& scoresRev);
 
+void recalc_scores_p_values(FILE * fin, 
+                            size_t mem_allowed, 
+                            Pwm& matrix, 
+                            ChromoVector& sequences, 
+                            size_t sequence_id, 
+                            std::vector<double>& pvalues, 
+                            std::vector<double>& scores,
+                            std::vector<bool>& strand,
+                            std::vector<size_t>& matched
+                           );
+
 void format_bed(std::ostream& fout,
                 std::string& chromoname,
                 std::vector<size_t>& positions_to_read_again,
@@ -68,7 +79,7 @@ void format_bed(FILE * fout,
 
 void format_bed(FILE * fout,
                 std::string& chromoname,
-                std::vector<uint32_t>& positions_to_read_again,
+                std::vector<size_t>& positions_to_read_again,
                 std::vector<double>& pvalues,
                 std::vector<double>& scores,
                 std::vector<bool>& strand,

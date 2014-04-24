@@ -91,7 +91,6 @@ char* Chromo::getSeqPtr(size_t part_number) {
       throw std::invalid_argument("Incorrect part_number");
     }
     
-    
     lock.lock();
 #ifdef DDEBUG_PRINT    
     std::cout << "Locked by:" << lock.native_handle() << ", current_part: " << current_part << ", part to acquire:" << part_number << " I'm thread " << std::this_thread::get_id() << std::endl;
@@ -103,20 +102,23 @@ char* Chromo::getSeqPtr(size_t part_number) {
       return sequence;
     }
     
-    sequence = new char[end_part[part_number] - start_part[part_number] + 1];
+    size_t plen = end_part[part_number] - start_part[part_number];
+    
+    sequence = new char[plen + 1 + SUPERALPHABET_SIZE];
+    memset(sequence, 0, plen + 1 + SUPERALPHABET_SIZE);
     FILE * fin = fopen(filename.c_str(), "r");
     fseek(fin, seq_start + start_part[part_number], SEEK_SET);
-    size_t bytes_read = fread(sequence, sizeof(char), end_part[part_number] - start_part[part_number], fin);
+    size_t bytes_read = fread(sequence, sizeof(char), plen, fin);
     if (bytes_read == 0) {
       std::cerr << "Read error occured while reading chromosome file. Can not continue." << std::endl;
       exit(-1);
     }
     
-    for (size_t i = 0; i < end_part[part_number] - start_part[part_number]; i++) {
+    for (auto i = 0; i < plen; i++) {
       sequence[i] &=0xDF; //uppercase trick
     }
     
-    sequence[end_part[part_number] - start_part[part_number]] = '\0';
+//    sequence[plen] = '\0';
     current_part.store(part_number);
     
     fclose(fin);
@@ -254,8 +256,8 @@ bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, doub
 
   size_t read_start = position - start_part[current_part.load()];
 //  std::cout << read_start << "\t"  << length << std::endl;
-  char buffer[intersection_size];
-//  memcpy(buffer, sequence + read_start, length); //TODO: Check if need to copy for real.
+  char buffer[intersection_size+SUPERALPHABET_SIZE];
+  memset(buffer, 0, intersection_size+SUPERALPHABET_SIZE);
   if (matrix.getMatrixType() == pat) {
     if(!wordToPath(sequence + read_start, buffer, intersection_size)) {
       return false;
@@ -267,6 +269,42 @@ bool Chromo::getWordScores (size_t position, Pwm& matrix, std::pair<double, doub
   }
   
   return matrix.getScorePair(buffer, scores);
+}
+
+
+void Chromo::getManyWordScores (std::vector<size_t>& positions_to_read_again, Pwm& matrix, std::vector<double>& scores, std::vector<size_t>& matched, std::vector<bool>& strand) {
+  if (positions_to_read_again[positions_to_read_again.size()-1] >= end_part[number_of_parts-1] - intersection_size) {
+    std::cerr << "This should never happen! Bounds violation" << std::endl;
+    exit(-1);
+  }
+  char buffer[intersection_size+SUPERALPHABET_SIZE];
+  for (auto&& position: positions_to_read_again) {
+    size_t part_no = 0;
+    
+    for (size_t i = 0; i < end_part.size(); i++) {
+      if (position < end_part[i] - intersection_size) {
+        part_no = i;
+        break;
+      }
+    }
+    
+    if (current_part.load() != part_no) {
+  #ifdef DDEBUG_PRINT    
+      print_lock.lock();
+      std::cout << "Want to change part from " << current_part.load() << " to " << part_no << ", I'm at " << position << ", I'm thread " << std::this_thread::get_id() << std::endl;
+      print_lock.unlock();
+  #endif
+      sequence = getSeqPtr(part_no);
+    }
+
+    size_t read_start = position - start_part[current_part.load()];
+
+    memset(buffer, 0, intersection_size+SUPERALPHABET_SIZE);
+    if(!wordToPathBit(sequence + read_start, buffer, intersection_size)) {
+      continue;
+    }
+    matrix.getScores(buffer, scores, strand, matched, position);
+  }
 }
 
 
@@ -300,7 +338,7 @@ std::vector<bool> wordToPathBitVector (char * buffer, char * destination, size_t
 }
 
 
-void Chromo::getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector<double>& scores, std::vector<bool>& strand, std::vector<uint32_t>& positions) {
+void Chromo::getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector<double>& scores, std::vector<bool>& strand, std::vector<size_t>& positions) {
   //guess part, where word is located
   size_t part_no = 0;
   if (last > end_part[number_of_parts-1]) {

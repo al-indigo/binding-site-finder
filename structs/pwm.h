@@ -59,16 +59,18 @@ public:
     std::thread                         getPValuesThreaded(std::vector<double>& thresholds, std::vector<double>& p_values, optimization_type _type = distance);
     void                                getPValuesPlain(std::vector<double>& thresholds, std::vector<double>& p_values, optimization_type _type = distance);
     
-    void                                getScores(std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev, optimization_type _type = classic);
     
-    double                        getThreshold() {return this->threshold;}
-    size_t                        getNumberOfWords() {return this->words_to_find; };
-    size_t                        getNumberOfWordsFound() {return this->words_found; };
-    unsigned int                  getNumberOfWordLeft() {return this->words_to_find - this->words_found; };
-    matrix_optimization_type      getMatrixType() {return this->type; }
     
-    bool                          getScorePair (char * word, std::pair<double, double>& scores);
-    void                          getScoresVector (char* buffer, std::vector< bool >& need_to_check, std::vector< double >& scores, std::vector< bool >& strand, std::vector< uint32_t >& positions, size_t offset);
+    double                              getThreshold() {return this->threshold;}
+    size_t                              getNumberOfWords() {return this->words_to_find; };
+    size_t                              getNumberOfWordsFound() {return this->words_found; };
+    unsigned int                        getNumberOfWordLeft() {return this->words_to_find - this->words_found; };
+    matrix_optimization_type            getMatrixType() {return this->type; }
+    
+    bool                                getScorePair (char * word, std::pair<double, double>& scores);
+    void                                getScoresVector (char* buffer, std::vector< bool >& need_to_check, std::vector< double >& scores, std::vector< bool >& strand, std::vector< size_t >& positions, size_t offset);
+    void                                getScores (std::vector<std::vector<char> >& words, std::vector<double>& scoresFw, std::vector<double>& scoresRev, optimization_type _type = classic);
+    void                                getScores (char* word, std::vector< double >& scores, std::vector< bool >& strand, std::vector< size_t >& positions, size_t position);
 
 
 };

@@ -11,8 +11,8 @@
 #include "pwm.h"
 
 void Pwm::fillMatrixPwmClassic(std::vector<double>& scorebuffer) {
-  int count = scorebuffer.size();
-  for (int k=0; k<count; k++) {
+  auto count = scorebuffer.size();
+  for (auto k=0; k<count; k++) {
     pwmFw.matrix[k] = scorebuffer[k]; //test[k];
     pwmRev.matrix[k] = scorebuffer[count-k-1]; //test[count-k-1];
     pwmCeiled.matrix[k] = ceil(scorebuffer[k] * DISCRETIZATION_VALUE);
@@ -21,9 +21,9 @@ void Pwm::fillMatrixPwmClassic(std::vector<double>& scorebuffer) {
 
 
 void Pwm::fillMatrixPwmBit(std::vector<double>& scorebuffer) {
-  int count = scorebuffer.size();
+  auto count = scorebuffer.size();
 
-    for (int i=0; i < count/4; i++) {
+    for (auto i=0; i < count/4; i++) {
       pwmFw.matrix[i*4] = scorebuffer[i*4];
       pwmFw.matrix[i*4+1] = scorebuffer[i*4+1];
       pwmFw.matrix[i*4+2] = scorebuffer[i*4+3];
@@ -34,7 +34,7 @@ void Pwm::fillMatrixPwmBit(std::vector<double>& scorebuffer) {
       pwmRev.matrix[i*4+2] = scorebuffer[count - i*4 - 4];
       pwmRev.matrix[i*4+3] = scorebuffer[count - i*4 - 3];
     } 
-    for (int k=0; k<count; k++) {
+    for (auto k=0; k<count; k++) {
       pwmCeiled.matrix[k] = ceil(pwmFw.matrix[k] * DISCRETIZATION_VALUE);
     }
 }
@@ -81,19 +81,16 @@ Pwm::Pwm(std::string pwmFilename, double p_value, matrix_optimization_type _type
               fillMatrixPwmBit(scorebuffer);
               break;
   }
-//  if (SUPERALPHABET_SIZE > 1) {
-//    std::thread fw = pwmFw.fillq_threaded();
-//    std::thread rev = pwmRev.fillq_threaded();
-    std::thread fw(&pwmMatrix::fillq, std::ref(pwmFw));
-    std::thread rev(&pwmMatrix::fillq, std::ref(pwmRev));
-//  }
-//  pwmCeiled.fillq();
+  std::thread fw(&pwmMatrix::fillq, std::ref(pwmFw));
+  std::thread rev(&pwmMatrix::fillq, std::ref(pwmRev));
+
 #ifdef DDEBUG_PRINT
   std::cout << "Fw Q matrix is " << std::endl;
   pwmFw.printqMatrix();
   std::cout << "Rev Q matrix is " << std::endl;
   pwmRev.printqMatrix();
 #endif
+  
   lastPath.init(pwmFw.rows);
 
 #ifdef DDEBUG_PRINT
@@ -193,7 +190,7 @@ std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
     double fwScore = 0.0;
     double revScore = 0.0;
     bool needBreak = false;
-    for (unsigned int depth = 0; depth < lastPath.length; depth++) {
+    for (auto depth = 0; depth < lastPath.length; depth++) {
       fwScore += pwmFw(depth, lastPath.path[depth]);
       revScore += pwmRev(depth, lastPath.path[depth]);
       /* here we check if we could ever get more scores on current path */
@@ -231,22 +228,48 @@ std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
 
 
 bool Pwm::getScorePair (char * word, std::pair<double, double>& scores) {
+    scores.first = 0.0;
+    scores.second = 0.0;
+    if (SUPERALPHABET_SIZE > 1) {
+      pwmFw.getScoreQ(word, scores.first);
+      pwmRev.getScoreQ(word, scores.second);
+    } else {
+      for (unsigned int k = 0; k < this->getLength(); k++) {
+        scores.first += pwmFw(k, word[k]);
+        scores.second += pwmRev(k, word[k]);
+      }
+    }
+      
+    return (scores.first > threshold || scores.second > threshold)? true: false;
+}
+
+void Pwm::getScores (char * word, std::vector<double>& scores, std::vector<bool>& strand, std::vector<size_t>& positions, size_t position) {
     double fwScore = 0.0;
     double revScore = 0.0;
-    
-    for (unsigned int k = 0; k < this->getLength(); k++) {
-      fwScore += pwmFw(k, word[k]);
-      revScore += pwmRev(k, word[k]);
+    if (SUPERALPHABET_SIZE > 1) {
+      pwmFw.getScoreQ(word, fwScore);
+      pwmRev.getScoreQ(word, revScore);
+    } else {
+      for (auto k = 0; k < this->getLength(); k++) {
+        fwScore += pwmFw(k, word[k]);
+        revScore += pwmRev(k, word[k]);
+      }        
     }
-    scores.first = fwScore;
-    scores.second = revScore;
-    
-    return (fwScore > threshold || revScore > threshold)? true: false;
+    if (fwScore > threshold) {
+      scores.push_back(fwScore);
+      positions.push_back(position);
+      strand.push_back(true);
+    }
+    if (revScore > threshold) {
+      scores.push_back(revScore);
+      positions.push_back(position);
+      strand.push_back(false);
+    }
 }
 
 
-void Pwm::getScoresVector (char * buffer, std::vector<bool>& need_to_check, std::vector<double>& scores, std::vector<bool>& strand, std::vector<uint32_t>& positions, size_t offset) {
-  for (uint32_t i = 0; i < need_to_check.size(); i++) {
+void Pwm::getScoresVector (char * buffer, std::vector<bool>& need_to_check, std::vector<double>& scores, std::vector<bool>& strand, std::vector<size_t>& positions, size_t offset) {
+  for (auto i = 0; i < need_to_check.size(); i++) {
     if (need_to_check[i]) {
       char * word = buffer + i;
       double fwScore = 0.0;
@@ -265,7 +288,7 @@ void Pwm::getScoresVector (char * buffer, std::vector<bool>& need_to_check, std:
         }
         #endif      
       } else {
-        for (unsigned int k = 0; k < this->getLength(); k++) {
+        for (auto k = 0; k < this->getLength(); k++) {
           fwScore += pwmFw(k, word[k]);
           revScore += pwmRev(k, word[k]);
         }        

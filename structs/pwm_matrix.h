@@ -8,13 +8,12 @@
 #include <stdint.h>
 
 //IMPORTANT: NOTE: Q stands for superAlphabet size and it should be known at compile-time. MUST be >=1. If it's equal to 1 then simple alphabet is used.
-#define SUPERALPHABET_SIZE 4
+#define SUPERALPHABET_SIZE 5
 //#define DDEBUG_PRINT
 
 #ifdef DDEBUG_PRINT
 #include <iostream>
 #endif
-
 
 typedef struct pwm_matrix {
   double * matrix;
@@ -41,31 +40,30 @@ typedef struct pwm_matrix {
   }
   
   void initq() {
-    qcols = cols;
-    for (unsigned int i = 1; i < SUPERALPHABET_SIZE; i++) qcols *= cols;
-    qrows = ((SUPERALPHABET_SIZE + rows - 1)/SUPERALPHABET_SIZE);
-    qmatrix = new double[qrows * qcols];
+    if (SUPERALPHABET_SIZE > 1) {
+      qcols = cols;
+      for (unsigned int i = 1; i < SUPERALPHABET_SIZE; i++) qcols *= cols;
+      qrows = ((SUPERALPHABET_SIZE + rows - 1)/SUPERALPHABET_SIZE);
+      qmatrix = new double[qrows * qcols];
+    }
   }
   
   void fillq() {
     if (SUPERALPHABET_SIZE > 1) {
-      int * indexes = new int[SUPERALPHABET_SIZE];
-      for (size_t row = 0; row < qrows; row++) {
-        for (size_t column = 0; column < qcols; column++) {
-          for (size_t i = 0; i < SUPERALPHABET_SIZE; i++) {
-            qmatrix[column + row*qcols] += this->operator()(SUPERALPHABET_SIZE*row + i, 0x0000000000000003&(column>>2*(SUPERALPHABET_SIZE-i-1)));
+      for (auto row = 0; row < qrows; row++) {
+        for (auto column = 0; column < qcols; column++) {
+          for (auto i = 0; i < SUPERALPHABET_SIZE; i++) {
+            qmatrix[column + row*qcols] += matrix[(0x0000000000000003&(column>>2*(SUPERALPHABET_SIZE-i-1))) + (SUPERALPHABET_SIZE*row + i)*cols];
           }
         }
       }
-
-      delete [] indexes;
     }
   }
 
   void printqMatrix() {
     #ifdef DDEBUG_PRINT  
-    for (int row = 0; row < qrows; row++) {
-      for (int column = 0; column < qcols; column++) {
+    for (auto row = 0; row < qrows; row++) {
+      for (auto column = 0; column < qcols; column++) {
         std::cout << this->operator()(row, column, true) << "  ";
       }
       std::cout << std::endl;
@@ -74,18 +72,19 @@ typedef struct pwm_matrix {
   }
 
   void getScoreSimple (char * word, double& score) {
-    for (unsigned int k = 0; k < rows; k++) {
+    for (auto k = 0; k < rows; k++) {
       score += matrix[word[k] + k*cols];
     }
   }
-
+ 
   void getScoreQ (char * word, double& score) {
     size_t idx = 0;
-    for (unsigned int k = 0; k < qrows; k++) {
+    for (auto k = 0; k < qrows; k++) {
       idx = 0;
-      for (int i = 0; i < SUPERALPHABET_SIZE; i++) {
+      for (auto i = 0; i < SUPERALPHABET_SIZE; i++) {
         idx |= word[k*SUPERALPHABET_SIZE+i]<<(2*(SUPERALPHABET_SIZE-1-i));
       }
+
       score += qmatrix[idx + k*qcols];
     }
   }

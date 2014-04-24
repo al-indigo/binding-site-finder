@@ -38,7 +38,7 @@ enum methods {naive, ahoc};
  *  8) coefficients for this linear are your calibration value. */
 #define CALIBRATION_VALUE(total_length) 214600 + 0.0006868 * total_length
 
-void naive_walk(size_t& s_i, size_t& start, size_t&stop, std::vector<double>& scores, std::vector<bool>& strand, std::vector<double>& pvalues, std::vector<uint32_t>& matched, Pwm& matrix, ChromoVector& sequences, size_t& offset) {
+void naive_walk(size_t& s_i, size_t& start, size_t&stop, std::vector<double>& scores, std::vector<bool>& strand, std::vector<double>& pvalues, std::vector<size_t>& matched, Pwm& matrix, ChromoVector& sequences, size_t& offset) {
 
   sequences.getWordScoresVector(s_i, offset + start, offset + stop, matrix, scores, strand, matched);
 
@@ -102,7 +102,7 @@ int predict(size_t mem_allowed,
   unsigned int patterns_allowed = ( mem_allowed - READ_BLOCK_SIZE) / (32*(matrix.getLength()));
   
   ChromoVector sequences(filenames, chromonames, starts, ends, matrix.getLength());
-  
+
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
 //  method = naive;
   if (method == naive) {
@@ -112,7 +112,7 @@ int predict(size_t mem_allowed,
         size_t offset = sequences.getAbsoluteOffset(s_i, p_i);
         int numthreads = 4;
         std::vector<std::vector<double> > scores(numthreads), pvalues(numthreads);
-        std::vector<std::vector<uint32_t> > matched(numthreads);
+        std::vector<std::vector<size_t> > matched(numthreads);
         std::vector<std::vector<bool> > strand(numthreads);
         std::vector<size_t> st(numthreads), en(numthreads);
         for (int i = 0; i < numthreads; i++) {
@@ -168,13 +168,15 @@ int predict(size_t mem_allowed,
     for (size_t i = 0; i < merged_files.size(); i++) {
       FILE * fin = fopen(merged_files[i].c_str(), "r");
       while (!feof(fin)) {
-        std::vector<size_t> positions_to_read_again;
+        std::vector<bool> strand;
+        std::vector<size_t> matched;
         std::vector<double> scoresFw, scoresRev, pvaluesFw, pvaluesRev;
             
-        recalc_scores_p_values(fin, positions_to_read_again, mem_allowed, matrix, sequences, i, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
-        if (positions_to_read_again.size() == 0) continue;
-      
-        format_bed(fout, chromonames[i], positions_to_read_again, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
+//        recalc_scores_p_values(fin, positions_to_read_again, mem_allowed, matrix, sequences, i, pvaluesFw, pvaluesRev, scoresFw, scoresRev);
+        recalc_scores_p_values(fin, mem_allowed, matrix, sequences, i, pvaluesFw, scoresFw, strand, matched);
+        if (matched.size() == 0) continue;
+              
+        format_bed(fout, chromonames[i], matched, pvaluesFw, scoresFw, strand, size_t(0));
         
       }
       

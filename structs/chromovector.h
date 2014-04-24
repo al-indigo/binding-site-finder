@@ -30,7 +30,8 @@ public:
   void getWordsAsPaths (size_t sequence_number, std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result) { chromovector[sequence_number]->getWordsAsPaths(positions, length, result); };
   void getWordAsPathTest (size_t sequence_number, size_t position, size_t length, std::vector<char>& result) { chromovector[sequence_number]->getWordAsPathTest(position, length, result); }
   bool getWordScores (size_t sequence_number, size_t position, Pwm& matrix, std::pair<double, double>& scores) { return chromovector[sequence_number]->getWordScores(position, matrix, scores); }
-  void getWordScoresVector (size_t sequence_number, size_t first, size_t last, Pwm& matrix, std::vector<double>& scores, std::vector<bool>& strand, std::vector<uint32_t>& positions) { return chromovector[sequence_number]->getWordScoresVector(first, last, matrix, scores, strand, positions); }
+  void getManyWordScores (size_t sequence_number, std::vector<size_t>& positions_to_read_again, Pwm& matrix, std::vector<double>& scores, std::vector<size_t>& matched, std::vector<bool>& strand) { return chromovector[sequence_number]->getManyWordScores(positions_to_read_again, matrix, scores, matched, strand); }
+  void getWordScoresVector (size_t sequence_number, size_t first, size_t last, Pwm& matrix, std::vector<double>& scores, std::vector<bool>& strand, std::vector<size_t>& positions) { return chromovector[sequence_number]->getWordScoresVector(first, last, matrix, scores, strand, positions); }
 
  ~ChromoVector ( );
 };

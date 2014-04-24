@@ -56,7 +56,8 @@ public:
     void getWordsAsPaths (std::vector<size_t>& positions, size_t length, std::vector <std::vector<char> >& result);
     void getWordAsPathTest (size_t position, size_t length, std::vector<char>& result);
     bool getWordScores (size_t position, Pwm& matrix, std::pair<double, double>& scores);
-    void getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector< double >& scores, std::vector< bool >& strand, std::vector< uint32_t >& positions);
+    void getManyWordScores (std::vector<size_t>& positions_to_read_again, Pwm& matrix, std::vector<double>& scores, std::vector<size_t>& matched, std::vector<bool>& strand);
+    void getWordScoresVector (size_t first, size_t last, Pwm& matrix, std::vector< double >& scores, std::vector< bool >& strand, std::vector< size_t >& positions);
 
     
    ~Chromo ();

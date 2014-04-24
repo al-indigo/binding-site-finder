@@ -1,7 +1,7 @@
 {
  "p-value": 0.01,
  "result-filename": "dev",
- "matrix": "/Users/al/Downloads/pwms/TAL1_f2.pat",
+ "matrix": "/Users/al/Downloads/pwms/AHR_si.pat",
  "memory": 5913,
  "tasks": [
   {
