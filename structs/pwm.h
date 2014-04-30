@@ -10,6 +10,8 @@
 #include <utility>
 #include <stdint.h>
 #include <thread>
+#include <functional>
+
 
 enum optimization_type {classic, two_letter, four_letter, distance};
 //TODO: make matrix type clearer.
@@ -33,7 +35,7 @@ class Pwm {
   
   matrix_optimization_type type;
   
-  std::map<double, double> distribution_after_threshold;
+  std::map<double, double, own_double_less> distribution_after_threshold;
   
 private:
     void                                initPrecalcMap (std::vector<std::map<uint32_t, double> >& precalcmap, pwmMatrix& pwm);

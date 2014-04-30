@@ -18,12 +18,21 @@
 typedef struct pwm_matrix {
   double * matrix;
   double * qmatrix;
+  double * background;
+  double bgsum;
+
   size_t rows;
   size_t cols;
   size_t qrows;
   size_t qcols;
-  pwm_matrix() { matrix = NULL; qmatrix = NULL; }
- ~pwm_matrix() { delete [] matrix; delete [] qmatrix; }
+  pwm_matrix() { matrix = NULL; qmatrix = NULL; background = NULL; }
+ ~pwm_matrix() { 
+   delete [] matrix; 
+   delete [] background;
+   if (SUPERALPHABET_SIZE > 1) {
+    delete [] qmatrix; 
+   }
+  }
   
   /* NOTE: we are initializing rows to be % 4. Not needed rows will be 0, doesn't matter.
    * NOTE: DANGER: I know that initing double array with 0 will give us some inaccuracy, but it should be pretty small to notice.
@@ -34,6 +43,14 @@ typedef struct pwm_matrix {
     cols = width; 
     rows = height; 
     memset(matrix, 0, sizeof(double) * width*SUPERALPHABET_SIZE*((SUPERALPHABET_SIZE + height -1)/SUPERALPHABET_SIZE)); 
+    
+    background = new double[4];
+    background[0] = 0.25;
+    background[1] = 0.25;
+    background[2] = 0.25;
+    background[3] = 0.25;
+    bgsum = background[0] + background[1] + background[2] + background[3];
+   
     if (SUPERALPHABET_SIZE > 1) {
       initq();
     }
@@ -45,6 +62,9 @@ typedef struct pwm_matrix {
       for (unsigned int i = 1; i < SUPERALPHABET_SIZE; i++) qcols *= cols;
       qrows = ((SUPERALPHABET_SIZE + rows - 1)/SUPERALPHABET_SIZE);
       qmatrix = new double[qrows * qcols];
+      for (auto i = 0; i < qrows*qcols; i++) {
+        qmatrix[i] = 0.0;
+      }
     }
   }
   
@@ -91,6 +111,23 @@ typedef struct pwm_matrix {
   
   double& operator()(int row, int col) { return matrix[col + row*cols]; }
   double& operator()(int row, int col, bool overload) { return qmatrix[col + row*qcols]; }
+  
+  double mean_value(int row) { 
+    double mean = 0;
+    for (auto col = 0; col < cols; col++) {
+      mean += matrix[col + row*cols] * background[col];
+    }
+    return mean/bgsum;
+  }
+  
+  double mean_square_value(int row) { 
+    double mean_square = 0;
+    for (auto col = 0; col < cols; col++) {
+      mean_square += matrix[col + row*cols] * matrix[col + row*cols] * background[col];
+    }
+    return mean_square/bgsum;
+  }
+  
 } pwmMatrix;
 
 #endif

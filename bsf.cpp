@@ -104,7 +104,7 @@ int predict(size_t mem_allowed,
   ChromoVector sequences(filenames, chromonames, starts, ends, matrix.getLength());
 
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
-//  method = naive;
+  method = naive;
   if (method == naive) {
     for (size_t s_i = 0; s_i < sequences.size(); s_i++) {
       for (size_t p_i = 0; p_i < sequences.getNumberOfParts(s_i); p_i++) {
@@ -196,6 +196,8 @@ int predict(size_t mem_allowed,
 
 double getThres(std::string matrix_filename, double p_value) {
   Pwm matrix(matrix_filename, p_value);
+  std::cout << "Threshold " << matrix.getThreshold() << " words approximately " << matrix.getNumberOfWordLeft() << std::endl;
+
   return matrix.getThreshold();
 }
 
@@ -241,6 +243,8 @@ int main(int argc, char** argv) {
     starts.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("start"));
     ends.push_back(task.get<jsonxx::Array>("tasks").get<jsonxx::Object>(i).get<jsonxx::Number>("end"));
   }
+  
+  getThres(matrix_filename, p_value);
   
   predict(mem_allowed, matrix_filename, p_value, result_folder, result_filename, status_folder, status_filename, filenames, chromonames, starts, ends);
 

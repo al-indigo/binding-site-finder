@@ -81,8 +81,10 @@ Pwm::Pwm(std::string pwmFilename, double p_value, matrix_optimization_type _type
               fillMatrixPwmBit(scorebuffer);
               break;
   }
-  std::thread fw(&pwmMatrix::fillq, std::ref(pwmFw));
-  std::thread rev(&pwmMatrix::fillq, std::ref(pwmRev));
+  pwmFw.fillq();
+  pwmRev.fillq();
+//  std::thread fw(&pwmMatrix::fillq, std::ref(pwmFw));
+//  std::thread rev(&pwmMatrix::fillq, std::ref(pwmRev));
 
 #ifdef DDEBUG_PRINT
   std::cout << "Fw Q matrix is " << std::endl;
@@ -119,8 +121,8 @@ Pwm::Pwm(std::string pwmFilename, double p_value, matrix_optimization_type _type
   threshold = this->get_threshold_by_pvalue(p_value);
   words_to_find =  2 * (size_t)(floor(p_value * pow(4, getLength())) - 1);
   
-  fw.join();
-  rev.join();
+//  fw.join();
+//  rev.join();
 
   return;
 }
@@ -174,7 +176,10 @@ std::vector<std::vector<char> > Pwm::getWords(unsigned int count, optimization_t
 std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
   
   std::vector<std::vector<char> > words;
-  words.resize(std::min(count, this->getNumberOfWordLeft()), std::vector<char>(this->getLength()+1));
+  words.resize(std::min(count, count), std::vector<char>(this->getLength()+1));
+//  words.resize(std::min(count, this->getNumberOfWordLeft()), std::vector<char>(this->getLength()+1));
+  
+  std::cout << " words vector size is " << std::min(count, this->getNumberOfWordLeft()) << " , patterns allowed: " << count << std::endl;
   
   /* wordcount is not a regular counter: it follows fit words, not number of iterations */
   
@@ -216,8 +221,9 @@ std::vector<std::vector<char> > Pwm::getWordsClassic(unsigned int count) {
   }
   words.resize(wordcount);
   
-#ifdef DDEBUG_PRINT
+
   std::cout << "Internal check: #patterns fit: " << words.size() << " fw: " << fw_fits << " rev: " << rev_fits << std::endl;
+#ifdef DDEBUG_PRINT
   for (std::map<std::string, double>::iterator i = check.begin(); i!=check.end(); ++i) {
     std::cout << (*i).first << "\t" << (*i).second << "\n";
   }
