@@ -104,7 +104,6 @@ int predict(size_t mem_allowed,
   ChromoVector sequences(filenames, chromonames, starts, ends, matrix.getLength());
 
   std::vector<std::vector<std::string> > files_to_merge(sequences.size());
-  method = naive;
   if (method == naive) {
     for (size_t s_i = 0; s_i < sequences.size(); s_i++) {
       for (size_t p_i = 0; p_i < sequences.getNumberOfParts(s_i); p_i++) {
